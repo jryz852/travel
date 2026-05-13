@@ -3276,6 +3276,137 @@
     cursor: pointer;
   }
 
+  /* "Add new trip" card — quieter secondary action below the hero.
+   * Compact (about 1/3 the hero's height), dashed warm-gray border, plus
+   * symbol in a soft circle, and a two-line label. It reads as an invitation
+   * rather than competing with the bold hero. */
+  .ma-new-trip-card {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    width: 100%;
+    margin: 14px 0 4px;
+    padding: 22px 18px;
+    background: transparent;
+    border: 1.6px dashed rgba(0,0,0,0.18);
+    border-radius: 18px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    /* Defeat default button styling */
+    text-align: center;
+    color: inherit;
+  }
+  .ma-new-trip-card:hover {
+    border-color: rgba(0,0,0,0.32);
+    background: rgba(0,0,0,0.015);
+  }
+  .ma-new-trip-card:active {
+    transform: scale(0.98);
+    background: rgba(0,0,0,0.04);
+  }
+  .ma-new-trip-circle {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--ink, #1a1816);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 300;
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+  .ma-new-trip-label {
+    font-weight: 700; font-size: 14px;
+    color: var(--ink, #1a1816);
+    letter-spacing: -0.005em;
+  }
+  .ma-new-trip-sub {
+    font-weight: 500; font-size: 11px;
+    color: var(--gray-500, #8a877f);
+    margin-top: 2px;
+  }
+
+  /* New trip sheet — labels + inputs */
+  .ma-new-trip-sheet {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+  .ma-nt-label {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px; font-weight: 700;
+    color: var(--gray-500, #8a877f);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 8px 14px 4px;
+  }
+  .ma-nt-input {
+    display: block;
+    width: calc(100% - 28px);
+    margin: 0 14px 10px;
+    background: var(--gray-50, #fafaf9);
+    border: 1.5px solid rgba(0,0,0,0.08);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: var(--ink, #1a1816);
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .ma-nt-input:focus {
+    border-color: var(--ink, #1a1816);
+    background: var(--paper, #fff);
+  }
+  .ma-nt-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 4px;
+    padding: 0 0 6px;
+  }
+  .ma-nt-grid .ma-nt-input {
+    margin-left: 4px; margin-right: 4px;
+    width: calc(100% - 8px);
+  }
+  .ma-nt-grid > div:first-child .ma-nt-input { margin-left: 14px; width: calc(100% - 18px); }
+  .ma-nt-grid > div:last-child .ma-nt-input { margin-right: 14px; width: calc(100% - 18px); }
+
+  /* Swipe-to-delete on day stops — see day-itinerary.
+   * Wraps the existing .ma-stop row in a container with a hidden delete
+   * action revealed by swiping left. */
+  .ma-stop-swipe {
+    position: relative;
+    overflow: hidden;
+    /* Allow vertical pan to scroll the page; we handle horizontal ourselves */
+    touch-action: pan-y;
+  }
+  .ma-stop-swipe-content {
+    position: relative;
+    background: var(--paper, #fff);
+    transition: transform 0.25s cubic-bezier(0.32, 0.72, 0.32, 1);
+    will-change: transform;
+    z-index: 2;
+  }
+  .ma-stop-swipe-content.is-dragging {
+    transition: none;
+  }
+  .ma-stop-swipe-content.is-revealed {
+    transform: translateX(-92px);
+  }
+  .ma-stop-swipe-delete {
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 92px;
+    background: var(--vermillion, #d04a3a);
+    color: white;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    z-index: 1;
+  }
+  .ma-stop-swipe-delete:active { background: #b03a2c; }
+
   /* Saved trips row (horizontal on home, vertical on saved-trips view) */
   .ma-saved-row {
     display: grid; grid-template-columns: 1fr 1fr;
@@ -5107,6 +5238,11 @@
     box-shadow: 0 8px 24px rgba(0,0,0,0.15);
     z-index: 10;
     padding: 6px;
+    /* CRITICAL: parent .ma-map-top has pointer-events: none so the map can
+     * receive touches behind the chrome. The dropdown must re-enable them
+     * or row taps fall through to the map and do nothing. This was the
+     * real bug — clicks on dropdown rows were never registering. */
+    pointer-events: auto;
   }
   .ma-map-day-dropdown .mddr {
     display: grid;
@@ -5717,6 +5853,16 @@
             <!-- Filled dynamically by renderMobileTripsHome -->
           </div>
 
+          <!-- Add new trip CTA — quieter secondary action, dashed border,
+               compact (about 1/3 the height of the hero). Tapping opens
+               the new-trip sheet. -->
+          <button class="ma-new-trip-card" id="maAddNewTripBtn" type="button"
+                  aria-label="Add a new trip">
+            <span class="ma-new-trip-circle">+</span>
+            <span class="ma-new-trip-label" data-i18n="ma-new-trip">Add new trip</span>
+            <span class="ma-new-trip-sub" data-i18n="ma-new-trip-sub">Plan another adventure</span>
+          </button>
+
           <!-- Saved trips row -->
           <div class="ma-section-head">
             <h2 data-i18n="ma-saved">Saved</h2>
@@ -5932,6 +6078,39 @@
         <div class="ma-rename-actions">
           <button class="ma-sheet-cancel" data-action="back" data-i18n="ma-cancel">Cancel</button>
           <button class="ma-rename-save" id="maRenameDaySave" data-i18n="ma-save">Save</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- View: New Trip — bottom sheet to create a trip from minimal fields.
+         Destination, start date, length in days. The new trip is saved
+         immediately and becomes the active trip. -->
+    <section class="ma-view ma-view-modal ma-sheet-view" data-view="new-trip" data-tab="trips">
+      <div class="ma-sheet-backdrop" data-action="back"></div>
+      <div class="ma-sheet ma-new-trip-sheet">
+        <div class="ma-stop-grabber"></div>
+        <div class="ma-sheet-title" data-i18n="ma-nt-title">New trip</div>
+
+        <label class="ma-nt-label" data-i18n="ma-nt-dest">Destination</label>
+        <input type="text" class="ma-nt-input" id="maNtDest"
+               autocomplete="off" autocorrect="off" spellcheck="false"
+               placeholder="e.g. Kyoto, Japan" />
+
+        <div class="ma-nt-grid">
+          <div>
+            <label class="ma-nt-label" data-i18n="ma-nt-start">Start date</label>
+            <input type="date" class="ma-nt-input" id="maNtStart" />
+          </div>
+          <div>
+            <label class="ma-nt-label" data-i18n="ma-nt-days">Days</label>
+            <input type="number" class="ma-nt-input" id="maNtDays"
+                   min="1" max="30" value="5" />
+          </div>
+        </div>
+
+        <div class="ma-rename-actions">
+          <button class="ma-sheet-cancel" data-action="back" data-i18n="ma-cancel">Cancel</button>
+          <button class="ma-rename-save" id="maNtCreate" data-i18n="ma-nt-create">Create trip</button>
         </div>
       </div>
     </section>
@@ -6839,6 +7018,13 @@ const i18n = {
     "ma-save": "Save",
     "ma-rename-day": "Rename day",
     "ma-rename-hint": "Leave blank to reset to default.",
+    "ma-new-trip": "Add new trip",
+    "ma-new-trip-sub": "Plan another adventure",
+    "ma-nt-title": "New trip",
+    "ma-nt-dest": "Destination",
+    "ma-nt-start": "Start date",
+    "ma-nt-days": "Days",
+    "ma-nt-create": "Create trip",
     "ma-pd-add": "Add to trip",
     "ma-pd-maps": "Maps",
     "ma-pd-reviews": "Reviews",
@@ -7089,6 +7275,13 @@ const i18n = {
     "ma-save": "儲存",
     "ma-rename-day": "重新命名",
     "ma-rename-hint": "留空即可重設為預設值。",
+    "ma-new-trip": "新增行程",
+    "ma-new-trip-sub": "規劃下一段旅程",
+    "ma-nt-title": "新增行程",
+    "ma-nt-dest": "目的地",
+    "ma-nt-start": "開始日期",
+    "ma-nt-days": "天數",
+    "ma-nt-create": "建立行程",
     "ma-pd-add": "加入行程",
     "ma-pd-maps": "地圖",
     "ma-pd-reviews": "評論",
@@ -13270,7 +13463,48 @@ const mobileViewRenderers = {
           selectedStops[idx] = sIdx;
           mobileNav.push('stop-detail', { dayIdx: idx, stopIdx: sIdx });
         });
-        stopsEl.appendChild(row);
+
+        // Wrap the row in a swipe-to-delete container. Swiping left reveals
+        // a vermillion Delete button. Tapping it (or pulling past the
+        // threshold) removes the stop from the day.
+        const swipeWrap = document.createElement('div');
+        swipeWrap.className = 'ma-stop-swipe';
+        swipeWrap.dataset.stopIdx = String(sIdx);
+        const swipeContent = document.createElement('div');
+        swipeContent.className = 'ma-stop-swipe-content';
+        swipeContent.appendChild(row);
+        const swipeDel = document.createElement('button');
+        swipeDel.className = 'ma-stop-swipe-delete';
+        swipeDel.type = 'button';
+        swipeDel.textContent = (currentLang === 'zh') ? '刪除' : 'Delete';
+        swipeWrap.appendChild(swipeContent);
+        swipeWrap.appendChild(swipeDel);
+        stopsEl.appendChild(swipeWrap);
+
+        // Wire the swipe-to-delete behavior. Closures over (idx, sIdx) so
+        // we delete the right stop when triggered.
+        attachSwipeToDelete(swipeWrap, () => {
+          // Remove the stop from the day's stops array, persist, re-render
+          const day = itinerary[idx];
+          if (!day || !day.stops || sIdx >= day.stops.length) return;
+          const removed = day.stops.splice(sIdx, 1)[0];
+          // Selected stop indices shift — if we just removed the active one
+          // or one before it, fix the selection
+          if (selectedStops[idx] >= sIdx && selectedStops[idx] > 0) {
+            selectedStops[idx]--;
+          }
+          try {
+            if (currentTrip && typeof tripStore !== 'undefined') {
+              tripStore.save(currentTrip);
+            }
+          } catch (e) {}
+          showToast(currentLang === 'zh'
+            ? `✓ 已刪除 ${removed?.name?.zh || removed?.name?.en || ''}`
+            : `✓ Removed ${removed?.name?.en || removed?.name?.zh || 'stop'}`);
+          // Rebuild the day-itinerary view (refreshes pins on map too)
+          mobileNav.renderActive();
+        });
+
         // Async: paint a real photo for the stop thumb
         loadStopThumb(s, row.querySelector('.mst-thumb'));
       });
@@ -13417,6 +13651,21 @@ const mobileViewRenderers = {
    * called again when full details fetch completes. */
   'place-detail': function() {
     renderPlaceDetail();
+  },
+
+  /* New Trip sheet — pre-fills today's date as start, 5 days as length.
+   * The destination field gets focus so the user can start typing right away. */
+  'new-trip': function() {
+    const dest = document.getElementById('maNtDest');
+    const start = document.getElementById('maNtStart');
+    const days = document.getElementById('maNtDays');
+    if (dest) {
+      dest.value = '';
+      dest.placeholder = currentLang === 'zh' ? '例如:京都' : 'e.g. Kyoto';
+    }
+    if (start) start.value = isoToday();
+    if (days) days.value = '5';
+    setTimeout(() => { try { dest?.focus(); } catch(e) {} }, 250);
   },
 
   /* Rename day sheet — small bottom sheet with a text input. The day index
@@ -14814,6 +15063,177 @@ function setMapBottomCollapsed(collapsed) {
 }
 function toggleMapBottomCard() {
   setMapBottomCollapsed(!isMapBottomCollapsed());
+}
+
+/* ─── New Trip flow ───────────────────────────────────────────
+ * Tap "Add new trip" on Trips home → opens the new-trip sheet.
+ * The user enters destination, start date, and # days. We build a
+ * minimal trip object with empty itinerary days (each gets the default
+ * "Day N" name), persist it, make it current, and navigate to its
+ * trip-overview screen.
+ */
+function openNewTripSheet() {
+  mobileNav.push('new-trip');
+}
+
+function createNewTripFromSheet() {
+  const destEl = document.getElementById('maNtDest');
+  const startEl = document.getElementById('maNtStart');
+  const daysEl = document.getElementById('maNtDays');
+  const destName = (destEl?.value || '').trim();
+  const startIso = startEl?.value || isoToday();
+  const days = Math.max(1, Math.min(30, parseInt(daysEl?.value || '5', 10) || 5));
+
+  if (!destName) {
+    showToast(currentLang === 'zh' ? '請輸入目的地' : 'Please enter a destination');
+    try { destEl?.focus(); } catch (e) {}
+    return;
+  }
+
+  // Build the trip object — mirrors the shape used by seeded trips
+  const id = `trip-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const itin = [];
+  for (let i = 0; i < days; i++) {
+    itin.push({
+      isoDate: isoAddDays(startIso, i),
+      stops: []
+      // No customName — getDayName() will return "Day N"
+    });
+  }
+  const newTrip = {
+    id,
+    title: { en: destName, zh: destName },
+    destination: { name: destName },
+    startDate: startIso,
+    endDate: isoAddDays(startIso, days - 1),
+    days,
+    itinerary: itin,
+    hotels: [],
+    createdAt: new Date().toISOString()
+  };
+
+  tripStore.save(newTrip);
+  tripStore.setCurrentId(id);
+
+  // Switch app state to the new trip and refresh
+  if (typeof switchTrip === 'function') {
+    switchTrip(id);
+  } else {
+    // Fallback — just reload data globals
+    currentTrip = newTrip;
+    itinerary = newTrip.itinerary;
+  }
+
+  // Dismiss the new-trip sheet and open the new trip's overview
+  mobileNav.pop();
+  setTimeout(() => mobileNav.push('trip-overview', { tripId: id }), 50);
+
+  showToast(currentLang === 'zh' ? `✓ 已建立行程` : `✓ Trip created`);
+}
+
+/* ─── Swipe-to-delete on day-itinerary stops ─────────────────
+ * Each stop row is wrapped in a .ma-stop-swipe container with a
+ * hidden delete button revealed by swiping the row left. Touch-driven:
+ *   • touchstart: capture start X
+ *   • touchmove: if horizontal motion dominates, track delta and
+ *     translate the content (capped at -92px). If at -92px and the
+ *     user keeps pulling past -130px, auto-delete.
+ *   • touchend: snap to 0 or -92px based on threshold.
+ * Vertical scrolls are ignored — the user can still scroll the list.
+ * Tapping anywhere else on the page closes the revealed swipe.
+ */
+function attachSwipeToDelete(rowWrap, deleteFn) {
+  const content = rowWrap.querySelector('.ma-stop-swipe-content');
+  const delBtn = rowWrap.querySelector('.ma-stop-swipe-delete');
+  if (!content || !delBtn) return;
+
+  let startX = 0, startY = 0;
+  let dx = 0;
+  let direction = null;   // 'h' | 'v' | null
+  let baseOffset = 0;     // current resting offset (0 or -92)
+  let isPointerDown = false;
+
+  const onStart = (e) => {
+    // Don't start a swipe if the user is interacting with a real button inside
+    if (e.target.closest('button') && !e.target.closest('.ma-stop-swipe-delete')) return;
+    const t = e.touches ? e.touches[0] : e;
+    startX = t.clientX;
+    startY = t.clientY;
+    dx = 0;
+    direction = null;
+    baseOffset = content.classList.contains('is-revealed') ? -92 : 0;
+    isPointerDown = true;
+    content.classList.add('is-dragging');
+  };
+  const onMove = (e) => {
+    if (!isPointerDown) return;
+    const t = e.touches ? e.touches[0] : e;
+    const cx = t.clientX, cy = t.clientY;
+    const ddx = cx - startX;
+    const ddy = cy - startY;
+    // Determine direction once threshold is crossed
+    if (direction === null) {
+      if (Math.abs(ddx) < 8 && Math.abs(ddy) < 8) return;
+      direction = (Math.abs(ddx) > Math.abs(ddy)) ? 'h' : 'v';
+      if (direction === 'v') {
+        // Vertical — abandon swipe so the page can scroll
+        isPointerDown = false;
+        content.classList.remove('is-dragging');
+        return;
+      }
+    }
+    if (direction !== 'h') return;
+    dx = ddx;
+    // Apply movement, clamped: never go past -130 (full pull) or past 0 right
+    let target = baseOffset + dx;
+    if (target > 0) target = target * 0.3;    // gentle rubber-band
+    if (target < -130) target = -130;
+    content.style.transform = `translateX(${target}px)`;
+    // Prevent the page from scrolling while we have an active horizontal drag
+    if (e.cancelable) e.preventDefault();
+  };
+  const onEnd = () => {
+    if (!isPointerDown) return;
+    isPointerDown = false;
+    content.classList.remove('is-dragging');
+    const finalOffset = baseOffset + dx;
+    if (finalOffset <= -130) {
+      // Hard pull — confirm delete inline (no separate confirm dialog;
+      // the action is undoable via re-add)
+      content.style.transform = '';
+      content.classList.remove('is-revealed');
+      deleteFn();
+    } else if (finalOffset < -50) {
+      content.style.transform = '';
+      content.classList.add('is-revealed');
+    } else {
+      content.style.transform = '';
+      content.classList.remove('is-revealed');
+    }
+  };
+
+  content.addEventListener('touchstart', onStart, { passive: true });
+  content.addEventListener('touchmove', onMove, { passive: false });
+  content.addEventListener('touchend', onEnd);
+  content.addEventListener('touchcancel', onEnd);
+
+  // Mouse fallback for desktop dev
+  content.addEventListener('mousedown', onStart);
+  document.addEventListener('mousemove', (e) => { if (isPointerDown) onMove(e); });
+  document.addEventListener('mouseup', onEnd);
+
+  // Tap the delete button → call deleteFn
+  delBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    deleteFn();
+  });
+
+  // Tap anywhere outside the row when it's revealed → close it
+  document.addEventListener('click', (e) => {
+    if (!content.classList.contains('is-revealed')) return;
+    if (rowWrap.contains(e.target)) return;
+    content.classList.remove('is-revealed');
+  });
 }
 
 /* ─── Place Detail modal ─────────────────────────────────────────
@@ -17282,6 +17702,18 @@ function setupMobileShell() {
     if (e.key === 'Enter') {
       e.preventDefault();
       saveRenameDay();
+    }
+  });
+
+  // Add new trip — open the new-trip sheet
+  document.getElementById('maAddNewTripBtn')?.addEventListener('click', openNewTripSheet);
+  // Create button inside the sheet
+  document.getElementById('maNtCreate')?.addEventListener('click', createNewTripFromSheet);
+  // Pressing Enter on the destination field also creates
+  document.getElementById('maNtDest')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      createNewTripFromSheet();
     }
   });
 
