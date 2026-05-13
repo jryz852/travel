@@ -4658,6 +4658,235 @@
   }
   .ma-map-list-btn { box-shadow: none; background: var(--gray-100, #f0eee9); }
 
+  /* ─── Map search bar (Google Maps style) ───
+   * Sits at the top of the map view. Collapsed state shows search input
+   * on the left with a small day-info chip on the right. When the user
+   * focuses the input, the chip shrinks and results show below. */
+  .ma-map-searchbar {
+    background: var(--paper, #fff);
+    border-radius: 100px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    display: flex;
+    align-items: center;
+    padding: 8px 8px 8px 14px;
+    gap: 8px;
+    pointer-events: auto;
+  }
+  .ma-map-search-icon {
+    font-size: 15px;
+    color: var(--gray-500, #8a877f);
+    flex-shrink: 0;
+  }
+  #maMapSearchInput {
+    flex: 1; min-width: 0;
+    background: transparent; border: none; outline: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--ink, #1a1816);
+    padding: 8px 0;
+  }
+  #maMapSearchInput::placeholder {
+    color: var(--gray-500, #8a877f);
+  }
+  .ma-map-search-clear {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--gray-200, #e8e6df);
+    color: var(--gray-700, #57544c);
+    border: none;
+    font-size: 11px; cursor: pointer;
+    display: none;
+    align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .ma-map-searchbar.has-value .ma-map-search-clear {
+    display: flex;
+  }
+  /* Day chip — small black pill on the right with day number */
+  .ma-map-day-chip {
+    background: var(--ink, #1a1816);
+    color: white;
+    border: none; border-radius: 100px;
+    padding: 6px 12px 6px 6px;
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer; flex-shrink: 0;
+    transition: opacity 0.15s, max-width 0.2s;
+    max-width: 200px;
+    overflow: hidden;
+  }
+  .ma-map-day-chip .ma-map-day-num {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--vermillion, #d04a3a);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800; font-size: 12px;
+    flex-shrink: 0;
+  }
+  .ma-map-day-chip-text {
+    display: flex; flex-direction: column;
+    text-align: left;
+    line-height: 1.1;
+  }
+  .ma-map-day-chip .ma-map-day-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase;
+  }
+  .ma-map-day-chip .ma-map-day-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px; font-weight: 700;
+    color: white;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    max-width: 110px;
+  }
+  /* When search has a value, shrink the day chip to just the number */
+  .ma-map-searchbar.has-value .ma-map-day-chip-text {
+    display: none;
+  }
+  .ma-map-searchbar.has-value .ma-map-day-chip {
+    padding: 6px;
+  }
+
+  /* Search results panel — slides down from below the search bar */
+  .ma-map-search-results {
+    margin-top: 8px;
+    background: var(--paper, #fff);
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    max-height: 60vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    pointer-events: auto;
+    padding: 6px 0;
+  }
+  .ma-map-search-results::-webkit-scrollbar { display: none; }
+  .ma-msr-row {
+    display: grid;
+    grid-template-columns: 48px 1fr 36px;
+    gap: 12px; align-items: center;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .ma-msr-row:active { background: var(--gray-50, #fafaf9); }
+  .ma-msr-thumb {
+    width: 48px; height: 48px;
+    border-radius: 10px;
+    background-size: cover; background-position: center;
+    background-color: var(--gray-100, #f0eee9);
+    flex-shrink: 0;
+  }
+  .ma-msr-info { min-width: 0; }
+  .ma-msr-name {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700; font-size: 14px;
+    color: var(--ink, #1a1816);
+    line-height: 1.25;
+    overflow: hidden; text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+  }
+  .ma-msr-meta {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--gray-700, #57544c);
+    margin-top: 2px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ma-msr-meta .mpc-star { color: #d97706; font-weight: 700; }
+  .ma-msr-meta .mpc-reviews { color: var(--gray-500, #8a877f); }
+  .ma-msr-add {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--ink, #1a1816);
+    color: white;
+    border: none;
+    font-size: 18px; line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .ma-msr-add:active { transform: scale(0.92); }
+  .ma-msr-empty, .ma-msr-loading {
+    padding: 20px 18px;
+    text-align: center;
+    color: var(--gray-500, #8a877f);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+  }
+
+  /* ─── Pick-a-day sheet ─── */
+  .ma-sheet-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px; color: var(--gray-500, #8a877f);
+    text-align: center; padding: 0 22px 14px;
+    margin-top: -10px;
+    border-bottom: 1px solid var(--gray-100, #f0eee9);
+    margin-bottom: 8px;
+    overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ma-pick-day-sheet {
+    padding-bottom: 8px;
+  }
+  .ma-pick-day-list {
+    max-height: 50vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 4px 8px;
+  }
+  .ma-pick-day-list::-webkit-scrollbar { display: none; }
+  .ma-pick-day-row {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 14px; align-items: center;
+    padding: 12px 14px;
+    background: transparent;
+    border: none; width: 100%;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: background 0.15s;
+  }
+  .ma-pick-day-row:active { background: var(--gray-100, #f0eee9); }
+  .ma-pick-day-row .pdr-num {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--gray-100, #f0eee9);
+    color: var(--ink, #1a1816);
+    font-family: 'Inter', sans-serif;
+    font-weight: 800; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ma-pick-day-row.is-today .pdr-num {
+    background: var(--vermillion, #d04a3a); color: white;
+  }
+  .ma-pick-day-row .pdr-meta {
+    min-width: 0;
+  }
+  .ma-pick-day-row .pdr-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+    color: var(--gray-500, #8a877f);
+    text-transform: uppercase;
+  }
+  .ma-pick-day-row .pdr-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700; font-size: 15px;
+    color: var(--ink, #1a1816);
+    letter-spacing: -0.005em;
+    margin-top: 2px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .ma-pick-day-row .pdr-count {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: var(--gray-500, #8a877f);
+  }
+
   /* Right-edge controls (recenter, locate) */
   .ma-map-controls {
     position: absolute;
@@ -5219,6 +5448,22 @@
       </div>
     </section>
 
+    <!-- View: Pick-a-day sheet — opens when user adds a place from Map search
+         or Explore. Shows trip days, user taps one to add the place to it.
+         Belongs to whichever tab is active (trip-overview-style sheet). -->
+    <section class="ma-view ma-view-modal ma-sheet-view" data-view="pick-day" data-tab="trips">
+      <div class="ma-sheet-backdrop" data-action="back"></div>
+      <div class="ma-sheet ma-pick-day-sheet">
+        <div class="ma-stop-grabber"></div>
+        <div class="ma-sheet-title" id="maPickDayTitle">Add to your trip</div>
+        <div class="ma-sheet-subtitle" id="maPickDaySubtitle">—</div>
+        <div class="ma-pick-day-list" id="maPickDayList">
+          <!-- Filled dynamically: one row per day -->
+        </div>
+        <button class="ma-sheet-cancel" data-action="back" data-i18n="ma-cancel">Cancel</button>
+      </div>
+    </section>
+
     <!-- ─── TAB: EXPLORE (placeholder for now) ─── -->
     <section class="ma-view" data-view="explore-home" data-tab="explore">
       <div class="ma-scroll">
@@ -5259,16 +5504,40 @@
       <!-- Full-bleed map element fills the view; chrome floats on top -->
       <div class="ma-map-canvas" id="maMapCanvas"></div>
 
-      <!-- Top floating pill: day number, eyebrow, title, and "List" button -->
+      <!-- Top floating chrome — search bar that, when collapsed, also shows
+           current day info on the right side. When focused, expands to a
+           full search with results overlay below. -->
       <div class="ma-map-top">
-        <div class="ma-map-day-pill" id="maMapDayPill">
-          <div class="ma-map-day-num" id="maMapDayNum">—</div>
-          <div class="ma-map-day-meta">
-            <div class="ma-map-day-eyebrow" id="maMapDayEyebrow">—</div>
-            <div class="ma-map-day-title" id="maMapDayTitle">—</div>
-          </div>
-          <button class="ma-pill-btn ma-map-list-btn" id="maMapListBtn" data-i18n="ma-list">List</button>
+        <div class="ma-map-searchbar" id="maMapSearchbar">
+          <span class="ma-map-search-icon">🔍</span>
+          <input type="search" id="maMapSearchInput"
+                 placeholder="Search places to add…"
+                 autocomplete="off" autocorrect="off"
+                 autocapitalize="off" spellcheck="false"
+                 enterkeyhint="search" />
+          <button class="ma-map-search-clear" id="maMapSearchClear"
+                  aria-label="Clear">✕</button>
+          <button class="ma-map-day-chip" id="maMapDayChip"
+                  aria-label="Open day list">
+            <span class="ma-map-day-num" id="maMapDayNum">—</span>
+            <span class="ma-map-day-chip-text">
+              <span class="ma-map-day-eyebrow" id="maMapDayEyebrow">—</span>
+              <span class="ma-map-day-title" id="maMapDayTitle">—</span>
+            </span>
+          </button>
         </div>
+        <!-- Hidden by default. Shown when the search input has results. -->
+        <div class="ma-map-search-results" id="maMapSearchResults"
+             style="display:none">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+
+      <!-- Backwards-compat: legacy id used by older code paths.
+           No longer rendered, but JS references it. -->
+      <div style="display:none">
+        <div id="maMapDayPill"></div>
+        <button id="maMapListBtn" data-i18n="ma-list">List</button>
       </div>
 
       <!-- Right-edge controls: recenter / current-location -->
@@ -11906,6 +12175,47 @@ const mobileViewRenderers = {
       hero.querySelector('[data-action="open-trip"]')?.addEventListener('click', () => {
         mobileNav.push('trip-overview', { tripId: currentTrip.id });
       });
+      // Make the whole card tappable to open the trip — same action as the
+      // "Open trip" button. We need to distinguish a real tap from a swipe
+      // on the photo carousel, so we track touch movement and only treat
+      // it as a tap if the finger barely moved.
+      hero.style.cursor = 'pointer';
+      let _heroTouchStart = null;
+      hero.addEventListener('touchstart', (e) => {
+        if (e.touches && e.touches.length > 0) {
+          _heroTouchStart = {
+            x: e.touches[0].clientX,
+            y: e.touches[0].clientY,
+            t: Date.now()
+          };
+        }
+      }, { passive: true });
+      hero.addEventListener('touchend', (e) => {
+        if (!_heroTouchStart) return;
+        const t = e.changedTouches?.[0];
+        if (!t) { _heroTouchStart = null; return; }
+        const dx = Math.abs(t.clientX - _heroTouchStart.x);
+        const dy = Math.abs(t.clientY - _heroTouchStart.y);
+        const dt = Date.now() - _heroTouchStart.t;
+        _heroTouchStart = null;
+        // Tap: movement under 10px AND duration under 400ms
+        if (dx < 10 && dy < 10 && dt < 400) {
+          // Skip if user tapped a button or the carousel dots area
+          if (e.target.closest('button')) return;
+          mobileNav.push('trip-overview', { tripId: currentTrip.id });
+        }
+      });
+      // Desktop click fallback (mouse, not touch). We use mouseup so it
+      // doesn't fire during a drag on the carousel.
+      hero.addEventListener('click', (e) => {
+        // Only fire if the click wasn't on a button (those handle themselves)
+        if (e.target.closest('button')) return;
+        // And not a touch event — touch handler above already fired
+        // Heuristic: a non-touch click won't have a recent _heroTouchStart
+        // because we cleared it in touchend
+        if (e.pointerType === 'touch') return;
+        mobileNav.push('trip-overview', { tripId: currentTrip.id });
+      });
       // Wire now/next button to push directly to stop-detail
       const nnBtn = hero.querySelector('.mth-now-next[data-stop-idx]');
       if (nnBtn) {
@@ -13471,11 +13781,252 @@ async function loadExploreCategoryPlaces(cat, center, sectionEl) {
       applyGradientFallback(thumb, p.name || p.place_id);
     }
     card.addEventListener('click', () => {
-      const url = `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(p.place_id)}`;
-      window.open(url, '_blank', 'noopener');
+      // Open the Pick-a-Day sheet to add this place to a chosen day
+      openPickDaySheet(p);
     });
     rowEl.appendChild(card);
   });
+}
+
+/* ════════════════════════════════════════════════════════════════
+ * MAP SEARCH + ADD TO TRIP
+ * ════════════════════════════════════════════════════════════════
+ * Map tab has a search bar at the top. As the user types, we run a
+ * debounced Google Places textSearch biased to the current trip's
+ * destination (or current day's stops). Each result has a "+" button
+ * that opens the Pick-a-Day sheet — the user picks which day to add
+ * the place to, and it gets appended to that day's stops.
+ *
+ * Same Pick-a-Day flow is reused when tapping an Explore card.
+ */
+
+/** Run a Google Places text search and render results into the panel.
+ *  Biased to the current trip's destination (or current day midpoint). */
+async function runMapSearch(query) {
+  const resultsEl = document.getElementById('maMapSearchResults');
+  if (!resultsEl) return;
+  resultsEl.style.display = '';
+  resultsEl.innerHTML = `<div class="ma-msr-loading">${escapeHTML(currentLang === 'zh' ? '搜尋中…' : 'Searching…')}</div>`;
+
+  if (!googleApiKey) {
+    resultsEl.innerHTML = `<div class="ma-msr-empty">${escapeHTML(currentLang === 'zh' ? '請先在「個人」中設定 API 金鑰' : 'Set your API key in Profile first')}</div>`;
+    return;
+  }
+
+  try { await loadGoogleMapsJsApi(); }
+  catch (e) {
+    resultsEl.innerHTML = `<div class="ma-msr-empty">${escapeHTML(currentLang === 'zh' ? '地圖服務載入失敗' : 'Map service failed to load')}</div>`;
+    return;
+  }
+
+  // Determine search center: current day midpoint > trip destination
+  let center = null;
+  const d = itinerary[mobileMap.day];
+  if (d?.stops?.length > 0) {
+    const mid = d.stops[Math.floor(d.stops.length / 2)];
+    if (mid?.lat) center = { lat: mid.lat, lng: mid.lng };
+  }
+  if (!center && currentTrip?.destination?.lat) {
+    center = { lat: currentTrip.destination.lat, lng: currentTrip.destination.lng };
+  }
+
+  const req = {
+    query,
+    language: currentLang === 'zh' ? 'zh-TW' : 'en'
+  };
+  if (center) {
+    req.location = new google.maps.LatLng(center.lat, center.lng);
+    req.radius = 8000;
+  }
+
+  const svc = new google.maps.places.PlacesService(document.createElement('div'));
+  svc.textSearch(req, (places, status) => {
+    if (status !== google.maps.places.PlacesServiceStatus.OK || !places || places.length === 0) {
+      resultsEl.innerHTML = `<div class="ma-msr-empty">${escapeHTML(currentLang === 'zh' ? '找不到結果' : 'No results')}</div>`;
+      return;
+    }
+    // Sort by rating × log(reviews) for "popularity-weighted quality"
+    const sorted = places.slice().filter(p => p.geometry?.location).sort((a, b) => {
+      const sa = (a.rating || 0) * Math.log(1 + (a.user_ratings_total || 0));
+      const sb = (b.rating || 0) * Math.log(1 + (b.user_ratings_total || 0));
+      return sb - sa;
+    });
+    const top = sorted.slice(0, 12);
+    resultsEl.innerHTML = '';
+    top.forEach(p => {
+      const slim = {
+        place_id: p.place_id,
+        name: p.name,
+        rating: p.rating,
+        user_ratings_total: p.user_ratings_total,
+        price_level: p.price_level,
+        vicinity: p.vicinity || p.formatted_address,
+        types: p.types,
+        photo: p.photos?.[0]?.getUrl?.({ maxWidth: 200, maxHeight: 200 }) || null,
+        lat: p.geometry.location.lat(),
+        lng: p.geometry.location.lng()
+      };
+      const row = document.createElement('div');
+      row.className = 'ma-msr-row';
+      row.innerHTML = `
+        <div class="ma-msr-thumb"></div>
+        <div class="ma-msr-info">
+          <div class="ma-msr-name">${escapeHTML(slim.name || '')}</div>
+          <div class="ma-msr-meta">
+            ${slim.rating ? `<span class="mpc-star">★ ${slim.rating.toFixed(1)}</span>` : ''}
+            ${slim.user_ratings_total ? `<span class="mpc-reviews">(${formatCount(slim.user_ratings_total)})</span>` : ''}
+            ${slim.vicinity ? `<span class="mpc-reviews">· ${escapeHTML(slim.vicinity.split(',')[0])}</span>` : ''}
+          </div>
+        </div>
+        <button class="ma-msr-add" aria-label="Add">+</button>
+      `;
+      const thumb = row.querySelector('.ma-msr-thumb');
+      if (slim.photo) thumb.style.backgroundImage = `url('${slim.photo}')`;
+      else applyGradientFallback(thumb, slim.name || slim.place_id);
+
+      // Click on row body → center map on it + show in bottom card
+      row.addEventListener('click', (e) => {
+        if (e.target.closest('.ma-msr-add')) return; // handled below
+        if (mobileMap.map) {
+          if (mobileMap.type === 'google') mobileMap.map.panTo({ lat: slim.lat, lng: slim.lng });
+          else if (mobileMap.type === 'leaflet') mobileMap.map.panTo([slim.lat, slim.lng]);
+        }
+        // Close the results panel so user can see the map
+        const searchInput = document.getElementById('maMapSearchInput');
+        if (searchInput) searchInput.blur();
+      });
+      // + button → open Pick-a-Day sheet
+      row.querySelector('.ma-msr-add').addEventListener('click', (e) => {
+        e.stopPropagation();
+        openPickDaySheet(slim);
+      });
+      resultsEl.appendChild(row);
+    });
+  });
+}
+
+/* ─── Pick-a-Day sheet ─── */
+let _pickDayPlace = null;  // place object pending add
+
+/** Open the bottom sheet listing days, with the place to add stashed. */
+function openPickDaySheet(place) {
+  if (!place) return;
+  if (!currentTrip) {
+    showToast(currentLang === 'zh' ? '請先選擇行程' : 'No active trip');
+    return;
+  }
+  _pickDayPlace = place;
+
+  // Populate sheet content
+  const titleEl = document.getElementById('maPickDayTitle');
+  const subEl = document.getElementById('maPickDaySubtitle');
+  const listEl = document.getElementById('maPickDayList');
+  if (titleEl) titleEl.textContent = currentLang === 'zh' ? '加入哪一天？' : 'Add to which day?';
+  if (subEl) subEl.textContent = place.name || '';
+
+  if (listEl) {
+    listEl.innerHTML = '';
+    const todayIso = isoToday();
+    itinerary.forEach((d, idx) => {
+      const row = document.createElement('button');
+      const isToday = d.isoDate === todayIso;
+      row.className = 'ma-pick-day-row' + (isToday ? ' is-today' : '');
+      const date = new Date((d.isoDate || '') + 'T00:00:00');
+      const daysEN = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+      const monthsEN = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+      const eyebrow = isNaN(date.getTime()) ? '' :
+        `${daysEN[date.getDay()]}, ${monthsEN[date.getMonth()]} ${date.getDate()}`;
+      const title = d.title?.en || d.title?.[currentLang] ||
+        (currentLang === 'zh' ? `第 ${idx+1} 天` : `Day ${idx+1}`);
+      const stopCount = d.stops?.length || 0;
+      row.innerHTML = `
+        <div class="pdr-num">${idx + 1}</div>
+        <div class="pdr-meta">
+          <div class="pdr-eyebrow">${escapeHTML(eyebrow)}</div>
+          <div class="pdr-title">${escapeHTML(title)}</div>
+        </div>
+        <div class="pdr-count">${stopCount} ${currentLang === 'zh' ? '個' : (stopCount === 1 ? 'stop' : 'stops')}</div>
+      `;
+      row.addEventListener('click', () => addPickedPlaceToDay(idx));
+      listEl.appendChild(row);
+    });
+  }
+  mobileNav.push('pick-day');
+}
+
+/** Called when user picks a day. Append the place to that day's stops,
+ *  save, refresh views, dismiss sheet, show toast. */
+function addPickedPlaceToDay(dayIdx) {
+  if (!_pickDayPlace || !currentTrip) return;
+  const d = itinerary[dayIdx];
+  if (!d) return;
+
+  // Reuse the existing addPlaceToDay if available — it normalizes the place
+  // shape, fetches missing details, etc.
+  if (typeof addPlaceToDay === 'function') {
+    // addPlaceToDay expects a Google Places result; we have a slim object.
+    // Build a compatible shape.
+    const placeArg = {
+      place_id: _pickDayPlace.place_id,
+      name: _pickDayPlace.name,
+      formatted_address: _pickDayPlace.vicinity || '',
+      types: _pickDayPlace.types || [],
+      rating: _pickDayPlace.rating,
+      user_ratings_total: _pickDayPlace.user_ratings_total,
+      price_level: _pickDayPlace.price_level,
+      geometry: {
+        location: { lat: () => _pickDayPlace.lat, lng: () => _pickDayPlace.lng }
+      },
+      photos: _pickDayPlace.photo ? [{ getUrl: () => _pickDayPlace.photo }] : []
+    };
+    try {
+      addPlaceToDay(dayIdx, placeArg);
+    } catch (e) {
+      console.warn('addPlaceToDay failed, falling back to direct push', e);
+      pushPlaceDirectly(dayIdx);
+    }
+  } else {
+    pushPlaceDirectly(dayIdx);
+  }
+
+  // Dismiss the sheet
+  mobileNav.pop();
+  // Clear the search input so the panel collapses
+  const searchInput = document.getElementById('maMapSearchInput');
+  if (searchInput) {
+    searchInput.value = '';
+    document.getElementById('maMapSearchbar')?.classList.remove('has-value');
+    const r = document.getElementById('maMapSearchResults');
+    if (r) { r.style.display = 'none'; r.innerHTML = ''; }
+  }
+  const dayLabel = currentLang === 'zh' ? `第 ${dayIdx + 1} 天` : `Day ${dayIdx + 1}`;
+  showToast(`✓ ${currentLang === 'zh' ? '已加入' : 'Added to'} ${dayLabel}`);
+
+  // Refresh views — especially the map needs a fresh build to show the new pin
+  if (typeof teardownMobileMap === 'function') teardownMobileMap();
+  if (typeof teardownItinMap === 'function') teardownItinMap();
+  mobileNav.renderActive();
+  _pickDayPlace = null;
+}
+
+/** Fallback that pushes a minimally-shaped stop directly onto the day's
+ *  stops array. Used when addPlaceToDay isn't available. */
+function pushPlaceDirectly(dayIdx) {
+  if (!_pickDayPlace || !itinerary[dayIdx]) return;
+  itinerary[dayIdx].stops = itinerary[dayIdx].stops || [];
+  itinerary[dayIdx].stops.push({
+    name: { en: _pickDayPlace.name, zh: _pickDayPlace.name },
+    cat: { en: '', zh: '' },
+    time: { en: '', zh: '' },
+    note: { en: _pickDayPlace.vicinity || '', zh: _pickDayPlace.vicinity || '' },
+    q: _pickDayPlace.name,
+    lat: _pickDayPlace.lat,
+    lng: _pickDayPlace.lng,
+    place_id: _pickDayPlace.place_id,
+    cost: 0,
+    rating: _pickDayPlace.rating
+  });
+  if (typeof saveItinerary === 'function') saveItinerary();
 }
 
 /** Build a Google Map with custom pin markers + polyline. */
@@ -15253,10 +15804,8 @@ function setupMobileShell() {
     mobileNav.switchTab('map');
   });
 
-  // "List" pill on map view → back to TRIPS tab, day itinerary
-  document.getElementById('maMapListBtn')?.addEventListener('click', () => {
-    // The TRIPS tab stack should already include day-itinerary if we got here
-    // via the Map pill. If not (user jumped straight to MAP), push it now.
+  // "List" pill / day chip on map view → back to TRIPS tab, day itinerary
+  const mapListHandler = () => {
     const tripsStack = mobileNav.stacks.trips;
     const onItinerary = tripsStack[tripsStack.length - 1] === 'day-itinerary';
     if (!onItinerary) {
@@ -15268,7 +15817,36 @@ function setupMobileShell() {
       tripsStack.push('day-itinerary');
     }
     mobileNav.switchTab('trips');
-  });
+  };
+  document.getElementById('maMapListBtn')?.addEventListener('click', mapListHandler);
+  document.getElementById('maMapDayChip')?.addEventListener('click', mapListHandler);
+
+  // ─── Map search input ───
+  // Debounced textSearch + render results panel.
+  const searchInput = document.getElementById('maMapSearchInput');
+  const searchClear = document.getElementById('maMapSearchClear');
+  const searchBar = document.getElementById('maMapSearchbar');
+  const resultsEl = document.getElementById('maMapSearchResults');
+  let mapSearchTimer = null;
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      const v = searchInput.value;
+      if (searchBar) searchBar.classList.toggle('has-value', v.length > 0);
+      clearTimeout(mapSearchTimer);
+      if (v.trim().length < 2) {
+        if (resultsEl) { resultsEl.style.display = 'none'; resultsEl.innerHTML = ''; }
+        return;
+      }
+      mapSearchTimer = setTimeout(() => runMapSearch(v), 400);
+    });
+  }
+  if (searchClear) {
+    searchClear.addEventListener('click', () => {
+      if (searchInput) searchInput.value = '';
+      if (searchBar) searchBar.classList.remove('has-value');
+      if (resultsEl) { resultsEl.style.display = 'none'; resultsEl.innerHTML = ''; }
+    });
+  }
 
   // Recenter / fit-all-stops control
   document.getElementById('maMapRecenter')?.addEventListener('click', () => {
