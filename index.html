@@ -3484,7 +3484,81 @@
   }
   .ma-day-item.is-today .mdi-weather { color: rgba(255,255,255,0.85); }
 
-  /* ─── Day itinerary (mockup 3) ─── */
+  /* ─── Day itinerary — new layout ───
+   * The view is a fixed-position flex column:
+   *   [ ma-itin-top    ]   header bar (back / title / +)
+   *   [ ma-itin-map    ]   fixed map showing day's stops, ~32vh tall
+   *   [ chips strip    ]   horizontal chips (stops/cost/km/weather)
+   *   [ ma-itin-scroll ]   the ONLY scrolling area — stops list
+   * The map stays put as the user scrolls the stops list. */
+  .ma-view-itin .ma-itin-top {
+    flex-shrink: 0;
+    background: var(--rice, #f5f1ea);
+    /* Small bottom shadow to separate the bar from the map below */
+    box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+    z-index: 3;
+  }
+  .ma-itin-top-meta {
+    flex: 1; min-width: 0;
+    text-align: center;
+    margin: 0 8px;
+  }
+  .ma-itin-top-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+    color: var(--vermillion, #d04a3a);
+    text-transform: uppercase;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .ma-itin-top-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700; font-size: 15px;
+    color: var(--ink, #1a1816);
+    letter-spacing: -0.005em;
+    margin-top: 2px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .ma-itin-map {
+    flex-shrink: 0;
+    position: relative;
+    height: 34vh;                /* about a third of the viewport */
+    min-height: 220px;
+    max-height: 340px;
+    background: var(--gray-100, #f0eee9);
+    overflow: hidden;
+    z-index: 1;
+  }
+  .ma-itin-map-canvas {
+    position: absolute; inset: 0;
+  }
+  .ma-itin-map-empty {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--gray-100, #f0eee9);
+    color: var(--gray-500, #8a877f);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+  }
+  .ma-itin-chips-strip {
+    flex-shrink: 0;
+    background: var(--rice, #f5f1ea);
+    padding: 12px 0 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    z-index: 2;
+  }
+  .ma-itin-chips-strip .ma-day-chips {
+    margin-top: 0;
+    padding: 0 18px;
+  }
+  .ma-itin-scroll {
+    flex: 1; min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding-bottom: 20px;
+  }
+
+  /* ─── Day itinerary (mockup 3 — legacy day-head, no longer used) ─── */
   .ma-day-head { padding: 14px 22px 18px; }
   .ma-day-eyebrow {
     display: inline-flex; align-items: center; gap: 8px;
@@ -4383,6 +4457,119 @@
   }
   .ma-explore-cta:active { transform: scale(0.98); }
   .ma-explore-cta-icon { font-size: 16px; }
+
+  /* Category pills (Google Maps-style filter row) */
+  .ma-explore-cats {
+    display: flex; gap: 8px;
+    padding: 14px 18px 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .ma-explore-cats::-webkit-scrollbar { display: none; }
+  .ma-cat-pill {
+    background: var(--paper, #fff);
+    border: none; border-radius: 100px;
+    padding: 8px 16px 8px 12px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600; font-size: 13px;
+    color: var(--ink, #1a1816);
+    cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; gap: 6px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.05);
+    transition: background 0.15s, color 0.15s;
+  }
+  .ma-cat-pill.active {
+    background: var(--ink, #1a1816); color: white;
+    box-shadow: none;
+  }
+  .ma-cat-pill-icon { font-size: 14px; }
+
+  /* Category sections — each has a heading + horizontal place cards */
+  .ma-explore-sections {
+    padding-bottom: 16px;
+  }
+  .ma-cat-section {
+    margin-top: 18px;
+  }
+  .ma-cat-section-head {
+    padding: 0 22px 10px;
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .ma-cat-section-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 800; font-size: 18px;
+    color: var(--ink, #1a1816);
+    letter-spacing: -0.01em;
+  }
+  .ma-cat-section-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px; color: var(--gray-500, #8a877f);
+    font-weight: 600;
+  }
+  .ma-cat-section-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0 22px;
+  }
+  .ma-cat-section-scroll::-webkit-scrollbar { display: none; }
+  .ma-cat-section-row {
+    display: flex; gap: 12px;
+    padding-bottom: 4px;
+  }
+  /* Place card — Google Maps-style: photo on top, name+rating below */
+  .ma-place-card {
+    flex: 0 0 168px;
+    background: var(--paper, #fff);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.04);
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .ma-place-card:active { transform: scale(0.98); }
+  .ma-place-card .mpc-thumb {
+    width: 100%; aspect-ratio: 4/3;
+    background-size: cover; background-position: center;
+    background-color: var(--gray-100, #f0eee9);
+  }
+  .ma-place-card .mpc-body {
+    padding: 10px 12px 12px;
+  }
+  .ma-place-card .mpc-name {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700; font-size: 14px;
+    color: var(--ink, #1a1816);
+    letter-spacing: -0.005em;
+    line-height: 1.25;
+    overflow: hidden; text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    min-height: 2.5em;
+  }
+  .ma-place-card .mpc-meta {
+    margin-top: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--gray-700, #57544c);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ma-place-card .mpc-meta .mpc-star { color: #d97706; font-weight: 700; }
+  .ma-place-card .mpc-meta .mpc-reviews { color: var(--gray-500, #8a877f); }
+  .ma-cat-empty {
+    padding: 24px 22px;
+    color: var(--gray-500, #8a877f);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+  }
+  .ma-cat-loading {
+    padding: 12px 22px 24px;
+    color: var(--gray-500, #8a877f);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+  }
   /* Empty states */
   .ma-explore-empty {
     padding: 24px 22px;
@@ -4898,39 +5085,50 @@
     </section>
 
     <!-- View: Day itinerary (mockup 3) -->
-    <section class="ma-view" data-view="day-itinerary" data-tab="trips">
-      <div class="ma-scroll">
-        <header class="ma-top">
-          <button class="ma-icon-btn" data-action="back" aria-label="Back">←</button>
-          <div class="ma-top-spacer"></div>
-          <button class="ma-pill-btn" id="maDayMapBtn" data-i18n="ma-map">Map</button>
-          <button class="ma-icon-btn" id="maDayAddStopBtn" aria-label="Add stop">+</button>
-        </header>
-
-        <div class="ma-day-head">
-          <div class="ma-day-eyebrow">
-            <span class="ma-dot"></span>
-            <span id="maDayEyebrow">DAY · LOCATION</span>
-          </div>
-          <div class="ma-day-numerals">
-            <div class="ma-day-num" id="maDayNum">01</div>
-            <div class="ma-day-num-side">
-              <div class="ma-day-of" id="maDayOf">of 07</div>
-            </div>
-          </div>
-          <div class="ma-day-title-row">
-            <div class="ma-day-subtitle" id="maDaySubtitle">—</div>
-            <h1 class="ma-day-title" id="maDayTitle">—</h1>
-          </div>
-
-          <div class="ma-day-chips" id="maDayChips">
-            <!-- Filled dynamically: stops · planned · cost · travel -->
-          </div>
+    <section class="ma-view ma-view-itin" data-view="day-itinerary" data-tab="trips">
+      <!-- Top header bar — back / spacer / Map / + buttons. Stays fixed. -->
+      <header class="ma-top ma-itin-top">
+        <button class="ma-icon-btn" data-action="back" aria-label="Back">←</button>
+        <div class="ma-itin-top-meta">
+          <div class="ma-itin-top-eyebrow" id="maItinTopEyebrow">DAY · LOCATION</div>
+          <div class="ma-itin-top-title" id="maItinTopTitle">—</div>
         </div>
+        <button class="ma-icon-btn" id="maDayAddStopBtn" aria-label="Add stop">+</button>
+      </header>
 
+      <!-- Fixed day-map area — replaces the old big numeral hero. Shows the
+           day's stops as pins. Stays at the top while the stops list below
+           scrolls independently. -->
+      <div class="ma-itin-map" id="maItinMap">
+        <div class="ma-itin-map-canvas" id="maItinMapCanvas"></div>
+        <div class="ma-itin-map-empty" id="maItinMapEmpty" style="display:none">
+          <span>—</span>
+        </div>
+      </div>
+
+      <!-- Chips strip immediately below the fixed map. Also stays fixed
+           because it's part of the "day header" visually. -->
+      <div class="ma-itin-chips-strip">
+        <div class="ma-day-chips" id="maDayChips">
+          <!-- Filled dynamically: stops · planned · cost · travel · weather -->
+        </div>
+      </div>
+
+      <!-- The ONLY thing that scrolls on this view: the stops list. -->
+      <div class="ma-itin-scroll">
         <div class="ma-stops" id="maDayStops">
           <!-- Filled dynamically with stop cards interleaved by legs -->
         </div>
+      </div>
+
+      <!-- Hidden legacy elements — referenced by JS that I don't want to refactor.
+           They still get their textContent set; just not displayed anywhere. -->
+      <div style="display:none">
+        <div id="maDayEyebrow"></div>
+        <div id="maDayNum"></div>
+        <div id="maDayOf"></div>
+        <div id="maDaySubtitle"></div>
+        <div id="maDayTitle"></div>
       </div>
     </section>
 
@@ -5027,34 +5225,32 @@
         <header class="ma-explore-head">
           <div class="ma-eyebrow" id="maExploreEyebrow">EXPLORE</div>
           <h1 class="ma-explore-title">
-            <span data-i18n="ma-explore-title">Places &amp;</span>
-            <em data-i18n="ma-explore-title-em">destinations</em>
+            <span data-i18n="ma-explore-title">Discover</span>
+            <em id="maExploreCityEm">nearby</em>
           </h1>
           <div class="ma-explore-stats" id="maExploreStats">—</div>
         </header>
 
-        <!-- Destinations row — one card per unique destination across all trips -->
+        <!-- Horizontally-scrolling category pills (Google Maps-style filter row).
+             Tapping a pill filters the sections below to just that category. -->
+        <div class="ma-explore-cats" id="maExploreCats">
+          <!-- Filled dynamically with category buttons -->
+        </div>
+
+        <!-- Category sections — each shows a horizontal scroller of top-rated
+             places for one category. Filled by the renderer. -->
+        <div class="ma-explore-sections" id="maExploreSections">
+          <!-- Filled dynamically -->
+        </div>
+
+        <!-- "Your destinations" row at the bottom — small, since this Explore tab
+             is now primarily about discovery, not navigation -->
         <div class="ma-section-head ma-explore-section">
           <h2 data-i18n="ma-explore-destinations">Your destinations</h2>
         </div>
         <div class="ma-explore-dests-scroll">
           <div class="ma-explore-dests" id="maExploreDests"></div>
         </div>
-
-        <!-- Library — grouped by source list -->
-        <div class="ma-section-head ma-explore-section">
-          <h2 data-i18n="ma-explore-library">Your library</h2>
-          <button class="ma-link" id="maExploreOpenLib" data-i18n="ma-explore-manage">Manage</button>
-        </div>
-        <div class="ma-explore-library" id="maExploreLibrary">
-          <!-- Filled dynamically -->
-        </div>
-
-        <!-- Bottom CTA -->
-        <button class="ma-explore-cta" id="maExploreImport">
-          <span class="ma-explore-cta-icon">📥</span>
-          <span data-i18n="ma-explore-import">Import more places</span>
-        </button>
       </div>
     </section>
 
@@ -9510,6 +9706,9 @@ document.addEventListener('keydown', e => {
 
 /* ============ SETTINGS / GOOGLE API KEY ============ */
 const GKEY_STORAGE = 'fukuoka_trip_v5_gkey';
+/* Build stamp — visible on Profile footer. Update this on every ship so
+ * the user can confirm at a glance which version of the file is loaded. */
+const APP_BUILD = '2026-05-13.r1';
 let googleApiKey = null;
 
 function loadGoogleKey() {
@@ -9865,6 +10064,7 @@ function switchTrip(id) {
   // Mobile map: the trip just changed, so any rendered map shows stale data.
   // Tear it down so it rebuilds next time the user opens the MAP tab.
   if (typeof teardownMobileMap === 'function') teardownMobileMap();
+  if (typeof teardownItinMap === 'function') teardownItinMap();
   renderHero();
   buildDayNav();
   renderAll();
@@ -12027,6 +12227,24 @@ const mobileViewRenderers = {
     currentDay = idx;
     const t = i18n[currentLang] || {};
 
+    // ─── New compact top bar (replaces the old big numerals hero) ───
+    const todayIso2 = isoToday();
+    const isToday2 = d.isoDate === todayIso2;
+    const dayLabel = isToday2
+      ? (currentLang === 'zh' ? '今日' : 'TODAY')
+      : (currentLang === 'zh' ? `第 ${idx+1} 天` : `DAY ${idx+1}`);
+    const dayLoc = d.title?.zh || d.title?.[currentLang] || d.title?.en || '';
+    const topEyebrow = document.getElementById('maItinTopEyebrow');
+    if (topEyebrow) topEyebrow.textContent = dayLoc ? `${dayLabel} · ${dayLoc}` : dayLabel;
+    const topTitle = document.getElementById('maItinTopTitle');
+    if (topTitle) topTitle.textContent = d.title?.en ||
+      (currentLang === 'zh' ? `第 ${idx+1} 天` : `Day ${idx+1}`);
+
+    // ─── Inline day map (fixed at top, doesn't scroll) ───
+    // Defer rendering until view transition completes so the map element has
+    // its final dimensions when Google/Leaflet measures it.
+    setTimeout(() => renderItinDayMap(idx), 50);
+
     // Eyebrow: "TODAY · LOCATION" or "DAY N · LOCATION"
     const todayIso = isoToday();
     const eyebrow = document.getElementById('maDayEyebrow');
@@ -12183,6 +12401,12 @@ const mobileViewRenderers = {
         loadStopThumb(s, row.querySelector('.mst-thumb'));
       });
     }
+
+    // Attach scroll-tracked highlight on the stops scroll container.
+    // As the user scrolls, whichever stop row crosses the "focus line"
+    // (~30% from the top of the visible scroll area) becomes the active
+    // one — that pin also gets highlighted on the inline map.
+    wireItinScrollHighlight(idx);
   },
 
   /* Stop detail — mockup 4.
@@ -12350,11 +12574,16 @@ const mobileViewRenderers = {
       b.classList.toggle('active', b.dataset.lang === currentLang);
     });
 
-    // Footer credit (also doubles as a place to show app version if we add one)
+    // Footer credit + visible build stamp so the user can verify which
+    // version of the file is loaded (helps diagnose cached-copy issues)
     const footer = document.getElementById('maProfileFooter');
-    if (footer) footer.textContent = currentLang === 'zh'
-      ? '所有資料儲存在您的瀏覽器中。'
-      : 'All data stays in your browser.';
+    if (footer) {
+      const buildText = `Build ${APP_BUILD}`;
+      footer.innerHTML = (currentLang === 'zh'
+        ? '所有資料儲存在您的瀏覽器中。'
+        : 'All data stays in your browser.')
+        + `<br><span style="opacity:0.6;font-size:10px;letter-spacing:0.04em">${buildText}</span>`;
+    }
 
     // Auto-run API test if a key is saved and we haven't tested this session,
     // so the user sees green/red status without having to know to tap "Test"
@@ -12367,25 +12596,43 @@ const mobileViewRenderers = {
   },
 
   /* Explore — a destinations row + library lists, sourced from existing data. */
+  /* Explore — Google Maps-style category discovery.
+   *
+   * Sections, in order:
+   *   1. A horizontal pill row of category filters at top
+   *   2. One horizontal-scrolling section per category, each with the top-rated
+   *      nearby places (via Google Places nearbySearch)
+   *   3. A small "Your destinations" row at the bottom for quick navigation
+   *
+   * The places are biased to the current trip's destination if there is one.
+   * Results are cached per (lat,lng,type) in localStorage with a 24h TTL so
+   * revisiting Explore doesn't burn API quota. */
   'explore-home': function() {
     const t = i18n[currentLang] || {};
     const trips = tripStore.list().map(id => tripStore.load(id)).filter(Boolean);
-    const places = (typeof placeStore !== 'undefined') ? placeStore.loadAll() : [];
 
-    // Header stats
+    // Title em — switches between "nearby" and the current destination name
+    const cityEm = document.getElementById('maExploreCityEm');
+    const cityName = currentTrip?.destination?.name ||
+                     (currentLang === 'zh' ? '附近' : 'nearby');
+    if (cityEm) cityEm.textContent = cityName;
+
+    // Stats line
     const stats = document.getElementById('maExploreStats');
     if (stats) {
       const dests = new Set(trips.map(tr => tr.destination?.name).filter(Boolean));
       stats.textContent = currentLang === 'zh'
-        ? `${dests.size} 個目的地 · ${places.length} 個已存地點`
-        : `${dests.size} destination${dests.size !== 1 ? 's' : ''} · ${places.length} saved place${places.length !== 1 ? 's' : ''}`;
+        ? `來自 Google · ${dests.size} 個目的地`
+        : `Top-rated nearby · ${dests.size} destination${dests.size !== 1 ? 's' : ''}`;
     }
 
-    // Destinations row
+    renderExploreCategories();
+    renderExploreSections();
+
+    // "Your destinations" row at the bottom
     const destsEl = document.getElementById('maExploreDests');
     if (destsEl) {
       destsEl.innerHTML = '';
-      // Group trips by destination name; pick the most recent for the card
       const byDest = new Map();
       trips.forEach(tr => {
         const name = tr.destination?.name;
@@ -12396,7 +12643,7 @@ const mobileViewRenderers = {
         }
       });
       if (byDest.size === 0) {
-        destsEl.innerHTML = `<div class="ma-explore-empty">${escapeHTML(currentLang === 'zh' ? '尚無目的地。建立行程即可在此顯示。' : 'No destinations yet. Create a trip to see it here.')}</div>`;
+        destsEl.innerHTML = `<div class="ma-explore-empty">${escapeHTML(currentLang === 'zh' ? '尚無目的地' : 'No destinations yet')}</div>`;
       } else {
         Array.from(byDest.values()).forEach(tr => {
           const card = document.createElement('div');
@@ -12416,9 +12663,7 @@ const mobileViewRenderers = {
             mobileNav.push('trip-overview', { tripId: tr.id });
           });
           destsEl.appendChild(card);
-          // Apply gradient fallback immediately so the card is never plain gray
           applyGradientFallback(card, tr.destination?.name || tr.title?.en || 'trip');
-          // Async upgrade to real photo
           if (typeof fetchDestinationPhoto === 'function') {
             fetchDestinationPhoto(tr).then(url => {
               if (url) card.style.backgroundImage = `url('${url}')`;
@@ -12427,69 +12672,7 @@ const mobileViewRenderers = {
         });
       }
     }
-
-    // Library — group by sourceList
-    const libEl = document.getElementById('maExploreLibrary');
-    if (libEl) {
-      libEl.innerHTML = '';
-      if (places.length === 0) {
-        libEl.innerHTML = `<div class="ma-explore-empty">${escapeHTML(currentLang === 'zh' ? '尚未匯入地點。' : 'No saved places yet.')}</div>`;
-      } else {
-        const byList = new Map();
-        places.forEach(p => {
-          const key = p.sourceList || (currentLang === 'zh' ? '其他' : 'Other');
-          if (!byList.has(key)) byList.set(key, []);
-          byList.get(key).push(p);
-        });
-        Array.from(byList.entries()).forEach(([listName, items]) => {
-          const card = document.createElement('div');
-          card.className = 'ma-explore-list-card';
-          // Build thumb elements — we'll wire async photo fetching after append
-          const sample = items.slice(0, 4);
-          const thumbs = sample.map((p, i) => {
-            if (i === 3 && items.length > 4) {
-              return `<div class="ma-explore-list-thumb overflow">+${items.length - 4}</div>`;
-            }
-            // Inline-painted if the place already has a `photo` URL on it.
-            // Otherwise we leave it blank and wire it up after DOM insert.
-            return p.photo
-              ? `<div class="ma-explore-list-thumb" style="background-image:url('${p.photo}');background-size:cover;background-position:center"></div>`
-              : `<div class="ma-explore-list-thumb"></div>`;
-          });
-          card.innerHTML = `
-            <div class="ma-explore-list-head">
-              <div class="ma-explore-list-name">${escapeHTML(listName)}</div>
-              <div class="ma-explore-list-count">${items.length} ${currentLang === 'zh' ? '個地點' : 'places'}</div>
-            </div>
-            <div class="ma-explore-list-thumbs">${thumbs.join('')}</div>
-          `;
-          card.addEventListener('click', () => {
-            // Open the existing Places panel filtered to this list
-            if (typeof openPlacesPanel === 'function') {
-              openPlacesPanel();
-              // Best-effort: set the filter dropdown to this list after open
-              setTimeout(() => {
-                const filter = document.getElementById('ppFilter');
-                if (filter) {
-                  filter.value = listName;
-                  filter.dispatchEvent(new Event('change'));
-                }
-              }, 100);
-            }
-          });
-          libEl.appendChild(card);
-          // Async: paint any thumbs that don't already have a photo
-          const thumbEls = card.querySelectorAll('.ma-explore-list-thumb:not(.overflow)');
-          thumbEls.forEach((el, idx) => {
-            const p = sample[idx];
-            if (!p || p.photo) return; // already painted
-            loadStopThumb(p, el);
-          });
-        });
-      }
-    }
   },
-
 
   /* Map (full-screen) — mockup 6.
    * Shows the active day's stops as numbered pins, with a hotel "A" pin
@@ -12721,6 +12904,578 @@ function teardownMobileMap() {
   mobileMap.markers = [];
   mobileMap.polyline = null;
   mobileMap.type = null;
+}
+
+/* ════════════════════════════════════════════════════════════════
+ * INLINE DAY MAP (top section of day-itinerary view)
+ * ════════════════════════════════════════════════════════════════
+ * A compact day map that lives at the top of the day-itinerary view,
+ * showing the hotel "A" + numbered stops with a dashed polyline. No
+ * chrome, no bottom card — just the map. Reuses the existing pin SVG
+ * style and Leaflet fallback. Maintains its own state separate from
+ * the full-screen MAP tab so they don't collide.
+ */
+const itinMap = {
+  day: -1,        // which day index is currently rendered
+  type: null,
+  map: null,
+  markers: [],
+  polyline: null
+};
+
+function teardownItinMap() {
+  try {
+    if (itinMap.type === 'leaflet' && itinMap.map?.remove) itinMap.map.remove();
+    if (itinMap.type === 'google') {
+      (itinMap.markers || []).forEach(m => { if (m?.setMap) m.setMap(null); });
+      if (itinMap.polyline?.setMap) itinMap.polyline.setMap(null);
+    }
+  } catch (e) {}
+  itinMap.map = null;
+  itinMap.markers = [];
+  itinMap.polyline = null;
+  itinMap.type = null;
+}
+
+async function renderItinDayMap(dayIdx) {
+  const canvas = document.getElementById('maItinMapCanvas');
+  const emptyEl = document.getElementById('maItinMapEmpty');
+  if (!canvas) return;
+
+  const d = itinerary[dayIdx];
+  if (!d) return;
+  const stops = (d.stops || []).filter(s => s.lat && s.lng);
+  const hotel = currentTrip?.hotels?.[0];
+  const hasHotel = hotel?.lat && hotel?.lng;
+
+  // No points to plot — show empty state
+  if (stops.length === 0 && !hasHotel) {
+    teardownItinMap();
+    canvas.innerHTML = '';
+    if (emptyEl) {
+      emptyEl.style.display = 'flex';
+      const inner = emptyEl.querySelector('span');
+      if (inner) inner.textContent = currentLang === 'zh'
+        ? '尚未加入景點 — 點下方 + 開始'
+        : 'No stops yet — tap + to add';
+    }
+    itinMap.day = dayIdx;
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  // If the day hasn't changed AND a map already exists, just nudge it
+  if (itinMap.day === dayIdx && itinMap.map !== null) {
+    try {
+      if (itinMap.type === 'leaflet' && itinMap.map.invalidateSize) itinMap.map.invalidateSize();
+      else if (itinMap.type === 'google' && typeof google !== 'undefined') {
+        google.maps.event.trigger(itinMap.map, 'resize');
+      }
+    } catch (e) {}
+    return;
+  }
+
+  // Different day or first render — tear down and rebuild
+  teardownItinMap();
+  canvas.innerHTML = '';
+  itinMap.day = dayIdx;
+
+  // Build point list: [hotel?, ...stops]
+  const points = [];
+  if (hasHotel) points.push({ kind: 'hotel', label: 'A', s: hotel });
+  stops.forEach((s, i) => points.push({ kind: 'stop', label: String(i + 1), idx: i, s }));
+
+  // Try Google first if we have a key, else Leaflet fallback
+  if (googleApiKey) {
+    try {
+      await loadGoogleMapsJsApi();
+      renderItinMapGoogle(canvas, points);
+      return;
+    } catch (e) {
+      // Fall through to Leaflet
+    }
+  }
+  renderItinMapLeaflet(canvas, points);
+}
+
+function renderItinMapGoogle(canvas, points) {
+  const first = points[0];
+  const map = new google.maps.Map(canvas, {
+    center: { lat: first.s.lat, lng: first.s.lng },
+    zoom: 13,
+    disableDefaultUI: true,
+    gestureHandling: 'cooperative',     // require 2-finger pan on the small inline map so single-finger scrolls the page
+    clickableIcons: false,
+    styles: [
+      { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+      { featureType: 'transit', stylers: [{ visibility: 'off' }] }
+    ]
+  });
+  itinMap.type = 'google';
+  itinMap.map = map;
+  itinMap.markers = [];
+
+  const pinIcon = (label, opts) => {
+    const fill = opts.fill || '#ffffff';
+    const stroke = opts.stroke || '#1a1816';
+    const textFill = opts.textFill || '#1a1816';
+    const size = 28;
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 32 32">
+        <circle cx="16" cy="16" r="13" fill="${fill}" stroke="${stroke}" stroke-width="2.2"/>
+        <text x="16" y="20" text-anchor="middle"
+              font-family="Inter, sans-serif" font-weight="700" font-size="12" fill="${textFill}">${label}</text>
+      </svg>`;
+    return {
+      url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+      scaledSize: new google.maps.Size(size, size),
+      anchor: new google.maps.Point(size / 2, size / 2)
+    };
+  };
+
+  // Dashed polyline along the route
+  const path = points.map(p => ({ lat: p.s.lat, lng: p.s.lng }));
+  itinMap.polyline = new google.maps.Polyline({
+    path, map, strokeOpacity: 0,
+    icons: [{
+      icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 2.5, strokeColor: '#1a1816' },
+      offset: '0', repeat: '10px'
+    }]
+  });
+
+  // Place pins
+  points.forEach(p => {
+    const isHotel = p.kind === 'hotel';
+    const marker = new google.maps.Marker({
+      position: { lat: p.s.lat, lng: p.s.lng },
+      map,
+      icon: pinIcon(p.label, {
+        fill: isHotel ? '#1a1816' : '#ffffff',
+        stroke: isHotel ? '#1a1816' : '#1a1816',
+        textFill: isHotel ? '#ffffff' : '#1a1816'
+      }),
+      zIndex: isHotel ? 50 : 10
+    });
+    if (p.kind === 'stop') {
+      marker.addListener('click', () => {
+        selectedStops[itinMap.day] = p.idx;
+        // Highlight the corresponding stop row in the list
+        try { highlightStopRow(p.idx); } catch (e) {}
+        // Scroll the stop into view
+        const row = document.querySelector(`#maDayStops [data-stop-idx="${p.idx}"]`);
+        if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    }
+    itinMap.markers.push(marker);
+  });
+
+  // Fit to bounds with mild padding
+  if (points.length > 1) {
+    const bounds = new google.maps.LatLngBounds();
+    points.forEach(p => bounds.extend({ lat: p.s.lat, lng: p.s.lng }));
+    map.fitBounds(bounds, { top: 30, bottom: 30, left: 30, right: 30 });
+  } else {
+    map.setZoom(14);
+  }
+}
+
+function renderItinMapLeaflet(canvas, points) {
+  if (typeof L === 'undefined') return;
+  const map = L.map(canvas, {
+    zoomControl: false,
+    attributionControl: false,
+    dragging: true,
+    tap: true
+  }).setView([points[0].s.lat, points[0].s.lng], 13);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd', maxZoom: 19
+  }).addTo(map);
+  itinMap.type = 'leaflet';
+  itinMap.map = map;
+  itinMap.markers = [];
+
+  const latlngs = points.map(p => [p.s.lat, p.s.lng]);
+  itinMap.polyline = L.polyline(latlngs, {
+    color: '#1a1816', weight: 2, opacity: 0.7,
+    dashArray: '3,7', lineCap: 'round'
+  }).addTo(map);
+
+  points.forEach(p => {
+    const isHotel = p.kind === 'hotel';
+    const cls = 'ma-pin' + (isHotel ? ' is-hotel' : '');
+    const marker = L.marker([p.s.lat, p.s.lng], {
+      icon: L.divIcon({
+        className: '',
+        html: `<div class="${cls}" style="width:28px;height:28px;font-size:11px">${escapeHTML(p.label)}</div>`,
+        iconSize: [28, 28], iconAnchor: [14, 14]
+      })
+    }).addTo(map);
+    if (p.kind === 'stop') {
+      marker.on('click', () => {
+        selectedStops[itinMap.day] = p.idx;
+        try { highlightStopRow(p.idx); } catch (e) {}
+        const row = document.querySelector(`#maDayStops [data-stop-idx="${p.idx}"]`);
+        if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    }
+    itinMap.markers.push(marker);
+  });
+
+  if (points.length > 1) {
+    map.fitBounds(latlngs, { padding: [25, 25] });
+  }
+  setTimeout(() => { try { map.invalidateSize(); } catch (e) {} }, 50);
+}
+
+/* Helper used by pin clicks AND scroll handler — sets the .is-active class
+ * on the matching stop row (and removes it from all others). */
+function highlightStopRow(stopIdx) {
+  const rows = document.querySelectorAll('#maDayStops .ma-stop[data-stop-idx]');
+  rows.forEach(r => {
+    const idx = parseInt(r.dataset.stopIdx, 10);
+    r.classList.toggle('is-active', idx === stopIdx);
+  });
+}
+
+/* Scroll-tracked highlight on the day-itinerary stops list.
+ *
+ * As the user scrolls the stops list, we compute which stop row is closest
+ * to a "focus line" at ~30% from the top of the scroll viewport. That row
+ * gets the .is-active highlight. The corresponding pin on the inline map
+ * above also gets highlighted (vermillion).
+ *
+ * The 30%-from-top focus line matches how Apple Maps and similar apps work:
+ * what you're "currently reading" is the item near the top of the screen,
+ * not the dead-center one.
+ *
+ * Throttled with requestAnimationFrame so it stays smooth at 60fps even with
+ * many stops.
+ */
+let _itinScrollRafId = null;
+let _itinScrollLastActive = -1;
+let _itinHighlightDayIdx = -1;
+
+function wireItinScrollHighlight(dayIdx) {
+  _itinHighlightDayIdx = dayIdx;
+  _itinScrollLastActive = -1;
+  const scrollEl = document.querySelector('.ma-itin-scroll');
+  if (!scrollEl) return;
+  // Replace any existing listener
+  scrollEl.onscroll = null;
+  scrollEl.onscroll = () => {
+    if (_itinScrollRafId) return;
+    _itinScrollRafId = requestAnimationFrame(() => {
+      _itinScrollRafId = null;
+      updateItinScrollActive();
+    });
+  };
+  // Initial update on render so the first stop gets highlighted
+  setTimeout(updateItinScrollActive, 100);
+}
+
+function updateItinScrollActive() {
+  const scrollEl = document.querySelector('.ma-itin-scroll');
+  const stopsEl = document.getElementById('maDayStops');
+  if (!scrollEl || !stopsEl) return;
+  const rows = Array.from(stopsEl.querySelectorAll('.ma-stop[data-stop-idx]'));
+  if (rows.length === 0) return;
+
+  // Focus line: 30% from the top of the scroll viewport
+  const scrollRect = scrollEl.getBoundingClientRect();
+  const focusY = scrollRect.top + scrollRect.height * 0.30;
+
+  // Find the row whose vertical span contains the focus line, OR the row
+  // whose top is closest to but not past the focus line.
+  let bestIdx = -1;
+  let bestDist = Infinity;
+  rows.forEach(row => {
+    const r = row.getBoundingClientRect();
+    const idx = parseInt(row.dataset.stopIdx, 10);
+    // If focus line is inside this row, pick it immediately
+    if (r.top <= focusY && r.bottom >= focusY) {
+      bestIdx = idx;
+      bestDist = 0;
+      return;
+    }
+    // Otherwise track the row whose center is closest to focus line
+    const center = (r.top + r.bottom) / 2;
+    const d = Math.abs(center - focusY);
+    if (d < bestDist) {
+      bestDist = d;
+      bestIdx = idx;
+    }
+  });
+  if (bestIdx < 0 || bestIdx === _itinScrollLastActive) return;
+  _itinScrollLastActive = bestIdx;
+
+  // Update row highlight
+  highlightStopRow(bestIdx);
+
+  // Update map pin to match. We do this by swapping the matching pin's icon
+  // (cheap) rather than rebuilding the map.
+  highlightItinMapPin(bestIdx);
+
+  // Remember as the "selected" stop so other surfaces stay in sync
+  if (_itinHighlightDayIdx >= 0) {
+    selectedStops[_itinHighlightDayIdx] = bestIdx;
+  }
+}
+
+/* Swap the inline map's matching pin to the vermillion active style,
+ * everyone else back to the default. */
+function highlightItinMapPin(activeStopIdx) {
+  if (!itinMap.map || !itinMap.markers.length) return;
+  const d = itinerary[itinMap.day];
+  if (!d) return;
+  const hotel = currentTrip?.hotels?.[0];
+  const hotelOffset = (hotel?.lat && hotel?.lng) ? 1 : 0;
+
+  if (itinMap.type === 'google' && typeof google !== 'undefined') {
+    const buildIcon = (label, isActive, isHotel) => {
+      const fill = isHotel ? '#1a1816' : (isActive ? '#d04a3a' : '#ffffff');
+      const stroke = isHotel ? '#1a1816' : (isActive ? '#d04a3a' : '#1a1816');
+      const textFill = (isActive || isHotel) ? '#ffffff' : '#1a1816';
+      const size = isActive ? 34 : 28;
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 32 32">
+          <circle cx="16" cy="16" r="13" fill="${fill}" stroke="${stroke}" stroke-width="2.2"/>
+          <text x="16" y="20" text-anchor="middle"
+                font-family="Inter, sans-serif" font-weight="700" font-size="12" fill="${textFill}">${label}</text>
+        </svg>`;
+      return {
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+        scaledSize: new google.maps.Size(size, size),
+        anchor: new google.maps.Point(size / 2, size / 2)
+      };
+    };
+    itinMap.markers.forEach((marker, i) => {
+      if (i < hotelOffset) {
+        // hotel pin — never marked active
+        marker.setIcon(buildIcon('A', false, true));
+        return;
+      }
+      const stopIdx = i - hotelOffset;
+      const isActive = stopIdx === activeStopIdx;
+      marker.setIcon(buildIcon(String(stopIdx + 1), isActive, false));
+      marker.setZIndex(isActive ? 100 : 10);
+    });
+  } else if (itinMap.type === 'leaflet') {
+    itinMap.markers.forEach((marker, i) => {
+      if (i < hotelOffset) return;
+      const stopIdx = i - hotelOffset;
+      const isActive = stopIdx === activeStopIdx;
+      const cls = 'ma-pin' + (isActive ? ' is-active' : '');
+      const size = isActive ? 34 : 28;
+      marker.setIcon(L.divIcon({
+        className: '',
+        html: `<div class="${cls}" style="width:${size}px;height:${size}px;font-size:11px">${stopIdx + 1}</div>`,
+        iconSize: [size, size], iconAnchor: [size/2, size/2]
+      }));
+      marker.setZIndexOffset(isActive ? 1000 : 0);
+    });
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+ * EXPLORE — Categories + Place discovery via Google nearbySearch
+ * ════════════════════════════════════════════════════════════════
+ * Categories mirror Google Maps' standard filter row. Each maps to one
+ * or more Google Places `type` values. Results are cached per
+ * (lat, lng, type) for 24h to keep API quota usage low.
+ */
+const EXPLORE_CATEGORIES = [
+  { key: 'all',         icon: '🌟', label: { en: 'All',         zh: '全部' }, types: ['restaurant', 'cafe', 'tourist_attraction'] },
+  { key: 'restaurant',  icon: '🍽',  label: { en: 'Restaurants', zh: '餐廳' }, types: ['restaurant'] },
+  { key: 'cafe',        icon: '☕', label: { en: 'Cafés',       zh: '咖啡' }, types: ['cafe'] },
+  { key: 'bar',         icon: '🍷', label: { en: 'Bars',        zh: '酒吧' }, types: ['bar'] },
+  { key: 'attraction',  icon: '📷', label: { en: 'Attractions', zh: '景點' }, types: ['tourist_attraction'] },
+  { key: 'hotel',       icon: '🛏', label: { en: 'Hotels',      zh: '飯店' }, types: ['lodging'] },
+  { key: 'shopping',    icon: '🛍', label: { en: 'Shopping',    zh: '購物' }, types: ['shopping_mall', 'store'] },
+];
+let _activeExploreCat = 'all';
+
+const EXPLORE_CACHE_PREFIX = 'explore:';
+const EXPLORE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+function getCachedExplore(key) {
+  try {
+    const raw = localStorage.getItem(EXPLORE_CACHE_PREFIX + key);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (Date.now() - (obj.ts || 0) > EXPLORE_CACHE_TTL_MS) return null;
+    return obj.places || null;
+  } catch (e) { return null; }
+}
+function setCachedExplore(key, places) {
+  try {
+    localStorage.setItem(EXPLORE_CACHE_PREFIX + key, JSON.stringify({ ts: Date.now(), places }));
+  } catch (e) {}
+}
+
+function renderExploreCategories() {
+  const wrap = document.getElementById('maExploreCats');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  EXPLORE_CATEGORIES.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'ma-cat-pill' + (cat.key === _activeExploreCat ? ' active' : '');
+    btn.dataset.cat = cat.key;
+    btn.innerHTML = `<span class="ma-cat-pill-icon">${cat.icon}</span><span>${escapeHTML(cat.label[currentLang] || cat.label.en)}</span>`;
+    btn.addEventListener('click', () => {
+      if (_activeExploreCat === cat.key) return;
+      _activeExploreCat = cat.key;
+      renderExploreCategories();
+      renderExploreSections();
+    });
+    wrap.appendChild(btn);
+  });
+}
+
+function renderExploreSections() {
+  const wrap = document.getElementById('maExploreSections');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+
+  const toRender = (_activeExploreCat === 'all')
+    ? EXPLORE_CATEGORIES.filter(c => c.key !== 'all')
+    : EXPLORE_CATEGORIES.filter(c => c.key === _activeExploreCat);
+
+  const center = getExploreCenter();
+  if (!center) {
+    wrap.innerHTML = `<div class="ma-cat-empty">${escapeHTML(currentLang === 'zh' ? '請開啟一個行程以查看附近推薦' : 'Open a trip to see nearby recommendations')}</div>`;
+    return;
+  }
+  if (!googleApiKey) {
+    wrap.innerHTML = `<div class="ma-cat-empty">${escapeHTML(currentLang === 'zh' ? '請先在「個人」中設定 Google API 金鑰' : 'Set your Google API key in Profile to see nearby places')}</div>`;
+    return;
+  }
+
+  toRender.forEach(cat => {
+    const section = document.createElement('div');
+    section.className = 'ma-cat-section';
+    section.dataset.cat = cat.key;
+    section.innerHTML = `
+      <div class="ma-cat-section-head">
+        <div class="ma-cat-section-title">${escapeHTML(cat.label[currentLang] || cat.label.en)}</div>
+        <div class="ma-cat-section-sub">${escapeHTML(currentLang === 'zh' ? '高評分' : 'Top-rated')}</div>
+      </div>
+      <div class="ma-cat-loading">${escapeHTML(currentLang === 'zh' ? '載入中…' : 'Loading…')}</div>
+      <div class="ma-cat-section-scroll" style="display:none">
+        <div class="ma-cat-section-row"></div>
+      </div>
+    `;
+    wrap.appendChild(section);
+    loadExploreCategoryPlaces(cat, center, section);
+  });
+}
+
+function getExploreCenter() {
+  if (currentTrip?.destination?.lat && currentTrip?.destination?.lng) {
+    return { lat: currentTrip.destination.lat, lng: currentTrip.destination.lng };
+  }
+  const firstStop = itinerary?.[0]?.stops?.[0];
+  if (firstStop?.lat && firstStop?.lng) {
+    return { lat: firstStop.lat, lng: firstStop.lng };
+  }
+  return null;
+}
+
+async function loadExploreCategoryPlaces(cat, center, sectionEl) {
+  const loadingEl = sectionEl.querySelector('.ma-cat-loading');
+  const scrollEl = sectionEl.querySelector('.ma-cat-section-scroll');
+  const rowEl = sectionEl.querySelector('.ma-cat-section-row');
+  if (!loadingEl || !rowEl) return;
+
+  let combined = [];
+  for (const type of cat.types) {
+    const cacheKey = `${center.lat.toFixed(2)},${center.lng.toFixed(2)}:${type}`;
+    let places = getCachedExplore(cacheKey);
+    if (!places) {
+      try {
+        await loadGoogleMapsJsApi();
+        places = await new Promise(resolve => {
+          const svc = new google.maps.places.PlacesService(document.createElement('div'));
+          svc.nearbySearch({
+            location: new google.maps.LatLng(center.lat, center.lng),
+            radius: 3000,
+            type
+          }, (results, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+              const slim = results.slice(0, 20).map(p => ({
+                place_id: p.place_id,
+                name: p.name,
+                rating: p.rating,
+                user_ratings_total: p.user_ratings_total,
+                price_level: p.price_level,
+                vicinity: p.vicinity,
+                types: p.types,
+                photo: p.photos?.[0]?.getUrl?.({ maxWidth: 400, maxHeight: 300 }) || null,
+                lat: p.geometry?.location?.lat(),
+                lng: p.geometry?.location?.lng()
+              }));
+              resolve(slim);
+            } else {
+              resolve([]);
+            }
+          });
+        });
+        setCachedExplore(cacheKey, places);
+      } catch (e) {
+        places = [];
+      }
+    }
+    combined = combined.concat(places);
+  }
+
+  // De-dup + sort by rating × log(reviews)
+  const seen = new Set();
+  const dedup = [];
+  for (const p of combined) {
+    if (!p.place_id || seen.has(p.place_id)) continue;
+    seen.add(p.place_id);
+    dedup.push(p);
+  }
+  dedup.sort((a, b) => {
+    const sa = (a.rating || 0) * Math.log(1 + (a.user_ratings_total || 0));
+    const sb = (b.rating || 0) * Math.log(1 + (b.user_ratings_total || 0));
+    return sb - sa;
+  });
+  const top = dedup.slice(0, 12);
+
+  loadingEl.style.display = 'none';
+  if (top.length === 0) {
+    sectionEl.insertAdjacentHTML('beforeend',
+      `<div class="ma-cat-empty">${escapeHTML(currentLang === 'zh' ? '此區域沒有結果' : 'No results in this area')}</div>`);
+    return;
+  }
+  if (scrollEl) scrollEl.style.display = '';
+  rowEl.innerHTML = '';
+  top.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'ma-place-card';
+    card.innerHTML = `
+      <div class="mpc-thumb"></div>
+      <div class="mpc-body">
+        <div class="mpc-name">${escapeHTML(p.name || '')}</div>
+        <div class="mpc-meta">
+          ${p.rating ? `<span class="mpc-star">★ ${p.rating.toFixed(1)}</span>` : ''}
+          ${p.user_ratings_total ? `<span class="mpc-reviews">(${formatCount(p.user_ratings_total)})</span>` : ''}
+          ${p.price_level ? `<span>·</span><span>${'¥'.repeat(Math.max(1, p.price_level))}</span>` : ''}
+        </div>
+      </div>
+    `;
+    const thumb = card.querySelector('.mpc-thumb');
+    if (p.photo) {
+      thumb.style.backgroundImage = `url('${p.photo}')`;
+    } else {
+      applyGradientFallback(thumb, p.name || p.place_id);
+    }
+    card.addEventListener('click', () => {
+      const url = `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(p.place_id)}`;
+      window.open(url, '_blank', 'noopener');
+    });
+    rowEl.appendChild(card);
+  });
 }
 
 /** Build a Google Map with custom pin markers + polyline. */
@@ -14283,6 +15038,7 @@ function saveApiKeyFromInput() {
   if (changed) {
     // Wipe cached map / loader state so the next MAP visit rebuilds fresh
     if (typeof teardownMobileMap === 'function') teardownMobileMap();
+    if (typeof teardownItinMap === 'function') teardownItinMap();
     if (typeof gmapsApiPromise !== 'undefined') gmapsApiPromise = null;
     if (typeof gmapsAuthError !== 'undefined') gmapsAuthError = null;
     // Reset the auto-test flag so the next Profile visit will re-test.
