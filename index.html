@@ -3483,6 +3483,48 @@
   }
   .ma-nt-grid > div:first-child .ma-nt-input { margin-left: 14px; width: calc(100% - 18px); }
   .ma-nt-grid > div:last-child .ma-nt-input { margin-right: 14px; width: calc(100% - 18px); }
+
+  /* Destination autocomplete — suggestions appear under the input as the
+     user types. Uses Google Places autocomplete. */
+  .ma-nt-dest-wrap {
+    position: relative;
+  }
+  .ma-nt-suggest {
+    position: absolute;
+    top: calc(100% - 6px); left: 14px; right: 14px;
+    background: var(--paper, #fff);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    max-height: 240px;
+    overflow-y: auto;
+    z-index: 20;
+    padding: 4px;
+  }
+  .ma-nt-suggest-row {
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: 'Inter', sans-serif;
+  }
+  .ma-nt-suggest-row:hover,
+  .ma-nt-suggest-row:active {
+    background: var(--gray-50, #fafaf9);
+  }
+  .ma-nt-suggest-main {
+    font-size: 13px; font-weight: 600;
+    color: var(--ink, #1a1816);
+  }
+  .ma-nt-suggest-sub {
+    font-size: 11px; color: var(--gray-500, #8a877f);
+    margin-top: 2px;
+  }
+  .ma-nt-suggest-empty {
+    padding: 12px;
+    text-align: center;
+    font-size: 12px; color: var(--gray-500, #8a877f);
+    font-family: 'Inter', sans-serif;
+  }
   /* Live-computed summary shown below the date range */
   .ma-nt-summary {
     margin: 4px 14px 16px;
@@ -4256,6 +4298,84 @@
     color: var(--gray-500, #8a877f);
     font-family: 'Inter', sans-serif;
     font-size: 12px;
+  }
+
+  /* Base (home/hotel) card — shown at the top of the stops list when the
+     trip has no hotel set yet. Same dashed style as "Add your first stop"
+     for consistency, but with an "A" pin so users intuit it's special. */
+  .ma-base-card {
+    margin: 14px 18px 4px;
+    background: transparent;
+    border: 1.6px dashed rgba(0,0,0,0.20);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .ma-base-card-head {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 12px; align-items: center;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .ma-base-card-head:hover { background: rgba(0,0,0,0.015); }
+  .ma-base-card-head:active { background: rgba(0,0,0,0.04); }
+  .ma-base-card-pin {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--ink, #1a1816);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800; font-size: 14px;
+  }
+  .ma-base-card-meta {
+    min-width: 0;
+  }
+  .ma-base-card-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px; font-weight: 700;
+    color: var(--vermillion, #d04a3a);
+    letter-spacing: 0.08em;
+    margin-bottom: 2px;
+  }
+  .ma-base-card-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700; font-size: 14px;
+    color: var(--ink, #1a1816);
+  }
+  .ma-base-card-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--gray-500, #8a877f);
+    margin-top: 2px;
+  }
+  .ma-base-search-panel {
+    display: none;
+    padding: 0 14px 14px;
+    border-top: 1px solid var(--gray-100, #f0eee9);
+  }
+  .ma-base-search-panel .ma-itin-search-bar {
+    margin-top: 12px;
+  }
+  .ma-base-search-results {
+    margin-top: 8px;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+  .ma-base-search-results .ma-isr-row {
+    /* Inherit isr-row layout from the inline search panel */
+    display: grid;
+    grid-template-columns: 44px 1fr 36px;
+    gap: 10px; align-items: center;
+    padding: 8px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .ma-base-search-results .ma-isr-row:hover,
+  .ma-base-search-results .ma-isr-row:active {
+    background: var(--gray-50, #fafaf9);
   }
 
   /* ─── Day itinerary (mockup 3 — legacy day-head, no longer used) ─── */
@@ -6369,9 +6489,19 @@
         <div class="ma-sheet-title" data-i18n="ma-nt-title">New trip</div>
 
         <label class="ma-nt-label" data-i18n="ma-nt-dest">Destination</label>
-        <input type="text" class="ma-nt-input" id="maNtDest"
-               autocomplete="off" autocorrect="off" spellcheck="false"
-               placeholder="e.g. Kyoto, Japan" />
+        <div class="ma-nt-dest-wrap">
+          <input type="text" class="ma-nt-input" id="maNtDest"
+                 autocomplete="off" autocorrect="off" spellcheck="false"
+                 placeholder="e.g. Kyoto, Japan" />
+          <!-- Floating suggestions panel — populated by Google Places
+               autocomplete as the user types a destination -->
+          <div class="ma-nt-suggest" id="maNtSuggest" style="display:none"></div>
+        </div>
+        <!-- Hidden field — stores the picked place_id + coords so we can
+             render the inline map immediately after creation -->
+        <input type="hidden" id="maNtDestPlaceId" />
+        <input type="hidden" id="maNtDestLat" />
+        <input type="hidden" id="maNtDestLng" />
 
         <div class="ma-nt-grid">
           <div>
@@ -13740,7 +13870,79 @@ const mobileViewRenderers = {
           </div>
           <div class="mst-base-pill">${escapeHTML(currentLang === 'zh' ? '據點' : 'BASE')}</div>
         `;
+        // Tap the base row → open the same search to change it
+        hRow.style.cursor = 'pointer';
+        hRow.addEventListener('click', () => {
+          const base = document.getElementById('maBaseSearchPanel');
+          if (base) {
+            base.style.display = 'block';
+            const inp = base.querySelector('input');
+            if (inp) { inp.value = ''; setTimeout(() => inp.focus(), 50); }
+          }
+        });
         stopsEl.appendChild(hRow);
+      } else {
+        // No hotel yet — show a "Set base" card with inline search
+        const baseCard = document.createElement('div');
+        baseCard.className = 'ma-base-card';
+        baseCard.innerHTML = `
+          <div class="ma-base-card-head">
+            <div class="ma-base-card-pin">A</div>
+            <div class="ma-base-card-meta">
+              <div class="ma-base-card-eyebrow">${escapeHTML(currentLang === 'zh' ? '據點' : 'BASE')}</div>
+              <div class="ma-base-card-title">${escapeHTML(currentLang === 'zh' ? '設定您的下榻地點' : 'Set your home base')}</div>
+              <div class="ma-base-card-sub">${escapeHTML(currentLang === 'zh' ? '飯店、民宿或公寓 — 每天的起點' : 'Hotel, Airbnb, or apartment — your daily starting point')}</div>
+            </div>
+          </div>
+          <div class="ma-base-search-panel" id="maBaseSearchPanel">
+            <div class="ma-itin-search-bar">
+              <span class="ma-itin-search-icon">🔍</span>
+              <input type="search" id="maBaseSearchInput"
+                     class="ma-itin-search-input"
+                     placeholder="${escapeHTML(currentLang === 'zh' ? '搜尋飯店名稱…' : 'Search hotel name…')}"
+                     autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+              <button class="ma-itin-search-clear" id="maBaseSearchClear"
+                      aria-label="Close" type="button">✕</button>
+            </div>
+            <div class="ma-base-search-results" id="maBaseSearchResults"></div>
+          </div>
+        `;
+        // Tap the head opens the search panel inline
+        baseCard.querySelector('.ma-base-card-head').addEventListener('click', () => {
+          const panel = baseCard.querySelector('#maBaseSearchPanel');
+          if (!panel) return;
+          panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+          if (panel.style.display === 'block') {
+            const inp = baseCard.querySelector('#maBaseSearchInput');
+            if (inp) setTimeout(() => inp.focus(), 50);
+          }
+        });
+        // Wire the search input (debounced)
+        let baseTimer = null;
+        const baseInput = baseCard.querySelector('#maBaseSearchInput');
+        const baseClear = baseCard.querySelector('#maBaseSearchClear');
+        const baseResults = baseCard.querySelector('#maBaseSearchResults');
+        if (baseInput) {
+          baseInput.addEventListener('input', () => {
+            clearTimeout(baseTimer);
+            const q = baseInput.value.trim();
+            if (q.length < 2) {
+              if (baseResults) baseResults.innerHTML = '';
+              return;
+            }
+            baseTimer = setTimeout(() => runBaseSearch(q, baseResults), 400);
+          });
+        }
+        if (baseClear) {
+          baseClear.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const panel = baseCard.querySelector('#maBaseSearchPanel');
+            if (panel) panel.style.display = 'none';
+            if (baseInput) baseInput.value = '';
+            if (baseResults) baseResults.innerHTML = '';
+          });
+        }
+        stopsEl.appendChild(baseCard);
       }
       (d.stops || []).forEach((s, sIdx) => {
         // Leg row (transit between this stop and the previous one)
@@ -13864,10 +14066,16 @@ const mobileViewRenderers = {
           `}
         `;
         stopsEl.appendChild(emptyEl);
-        // Wire the empty-state add button to the same flow as the top-bar +
+        // Wire the empty-state card to focus the inline search bar above —
+        // the search bar is now the primary path to add stops, and this
+        // card is a visual nudge toward it.
         emptyEl.querySelector('#maDayEmptyAddBtn')?.addEventListener('click', () => {
-          const addBtn = document.getElementById('maDayAddStopBtn');
-          if (addBtn) addBtn.click();
+          const searchInput = document.getElementById('maItinSearchInput');
+          if (searchInput) {
+            searchInput.focus();
+            // Scroll the search bar into view in case it's offscreen
+            searchInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
         });
       }
     }
@@ -14026,16 +14234,26 @@ const mobileViewRenderers = {
       dest.value = '';
       dest.placeholder = currentLang === 'zh' ? '例如:京都' : 'e.g. Kyoto';
     }
+    // Reset the hidden place_id/coords from any previous trip creation
+    const pidEl = document.getElementById('maNtDestPlaceId');
+    const latEl = document.getElementById('maNtDestLat');
+    const lngEl = document.getElementById('maNtDestLng');
+    if (pidEl) pidEl.value = '';
+    if (latEl) latEl.value = '';
+    if (lngEl) lngEl.value = '';
+    const suggest = document.getElementById('maNtSuggest');
+    if (suggest) { suggest.style.display = 'none'; suggest.innerHTML = ''; }
+
     const today = isoToday();
     if (start) start.value = today;
-    if (end) end.value = isoAddDays(today, 4);   // default to a 5-day trip
-    // Initial summary
+    if (end) end.value = isoAddDays(today, 4);
     updateNewTripSummary();
-    // Wire change handlers so the summary updates live
     if (start) start.onchange = updateNewTripSummary;
     if (end) end.onchange = updateNewTripSummary;
-    // Wire swipe-down dismiss on the grabber strip. Drag down past ~80px
-    // and the sheet pops back to Trips home. Mirrors the iOS sheet pattern.
+
+    // Wire the destination autocomplete (debounced 300ms)
+    wireDestinationAutocomplete();
+
     wireSheetSwipeDismiss(
       document.getElementById('maNewTripGrab'),
       document.getElementById('maNewTripSheet')
@@ -14668,19 +14886,42 @@ async function renderItinDayMap(dayIdx) {
   const stops = (d.stops || []).filter(s => s.lat && s.lng);
   const hotel = currentTrip?.hotels?.[0];
   const hasHotel = hotel?.lat && hotel?.lng;
+  // Destination-level coords (set during trip creation via autocomplete) —
+  // used to show the destination area on the map even before any stops
+  // are added. Without these, a brand-new trip would show a grey box.
+  const dest = currentTrip?.destination;
+  const hasDest = dest?.lat && dest?.lng;
 
-  // No points to plot — show empty state
+  // No points to plot — but we may still be able to show the destination area
   if (stops.length === 0 && !hasHotel) {
+    if (!hasDest) {
+      // Nothing to anchor to — show the textual empty state
+      teardownItinMap();
+      canvas.innerHTML = '';
+      if (emptyEl) {
+        emptyEl.style.display = 'flex';
+        const inner = emptyEl.querySelector('span');
+        if (inner) inner.textContent = currentLang === 'zh'
+          ? '加入景點或基地以查看地圖'
+          : 'Add a base or stop to see the map';
+      }
+      itinMap.day = dayIdx;
+      return;
+    }
+    // Render the destination area as the only "point" (no pin, just centered)
+    if (emptyEl) emptyEl.style.display = 'none';
     teardownItinMap();
     canvas.innerHTML = '';
-    if (emptyEl) {
-      emptyEl.style.display = 'flex';
-      const inner = emptyEl.querySelector('span');
-      if (inner) inner.textContent = currentLang === 'zh'
-        ? '尚未加入景點 — 點下方 + 開始'
-        : 'No stops yet — tap + to add';
-    }
     itinMap.day = dayIdx;
+    const centerPoint = { lat: dest.lat, lng: dest.lng };
+    if (googleApiKey) {
+      try {
+        await loadGoogleMapsJsApi();
+        renderItinMapGoogle(canvas, [], centerPoint);
+        return;
+      } catch (e) { /* fall through */ }
+    }
+    renderItinMapLeaflet(canvas, [], centerPoint);
     return;
   }
   if (emptyEl) emptyEl.style.display = 'none';
@@ -14719,11 +14960,15 @@ async function renderItinDayMap(dayIdx) {
   renderItinMapLeaflet(canvas, points);
 }
 
-function renderItinMapGoogle(canvas, points) {
-  const first = points[0];
+function renderItinMapGoogle(canvas, points, centerPoint) {
+  // When `points` is empty, `centerPoint` provides the map center (destination
+  // area) so a brand-new trip with no stops still gets a real map view.
+  const center = points.length > 0
+    ? { lat: points[0].s.lat, lng: points[0].s.lng }
+    : (centerPoint || { lat: 0, lng: 0 });
   const map = new google.maps.Map(canvas, {
-    center: { lat: first.s.lat, lng: first.s.lng },
-    zoom: 13,
+    center,
+    zoom: points.length === 0 ? 12 : 13,
     disableDefaultUI: true,
     gestureHandling: 'cooperative',     // require 2-finger pan on the small inline map so single-finger scrolls the page
     clickableIcons: false,
@@ -14736,6 +14981,9 @@ function renderItinMapGoogle(canvas, points) {
   itinMap.map = map;
   itinMap.markers = [];
 
+  // If no points (just showing the destination area), we're done — no pins,
+  // no polyline. The user sees the city/area waiting for stops.
+  if (points.length === 0) return;
   const pinIcon = (label, opts) => {
     const fill = opts.fill || '#ffffff';
     const stroke = opts.stroke || '#1a1816';
@@ -14800,20 +15048,29 @@ function renderItinMapGoogle(canvas, points) {
   }
 }
 
-function renderItinMapLeaflet(canvas, points) {
+function renderItinMapLeaflet(canvas, points, centerPoint) {
   if (typeof L === 'undefined') return;
+  const center = points.length > 0
+    ? [points[0].s.lat, points[0].s.lng]
+    : (centerPoint ? [centerPoint.lat, centerPoint.lng] : [0, 0]);
   const map = L.map(canvas, {
     zoomControl: false,
     attributionControl: false,
     dragging: true,
     tap: true
-  }).setView([points[0].s.lat, points[0].s.lng], 13);
+  }).setView(center, points.length === 0 ? 12 : 13);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     subdomains: 'abcd', maxZoom: 19
   }).addTo(map);
   itinMap.type = 'leaflet';
   itinMap.map = map;
   itinMap.markers = [];
+
+  // No points → just the destination area, no pins/lines
+  if (points.length === 0) {
+    setTimeout(() => { try { map.invalidateSize(); } catch (e) {} }, 50);
+    return;
+  }
 
   const latlngs = points.map(p => [p.s.lat, p.s.lng]);
   itinMap.polyline = L.polyline(latlngs, {
@@ -15599,6 +15856,98 @@ function addPlaceToCurrentDay(slim) {
   mobileNav.renderActive();
 }
 
+/* ─── Base search (hotel/home for the trip) ──────────────────────
+ * Mirrors runItinDaySearch but biases to lodging types and writes the
+ * pick to currentTrip.hotels[0] instead of the day's stops. */
+async function runBaseSearch(query, resultsEl) {
+  if (!resultsEl) return;
+  resultsEl.innerHTML = `<div class="ma-isr-loading">${escapeHTML(currentLang === 'zh' ? '搜尋中…' : 'Searching…')}</div>`;
+  if (!googleApiKey) {
+    resultsEl.innerHTML = `<div class="ma-isr-empty">${escapeHTML(currentLang === 'zh' ? '請在「個人」中設定 Google API 金鑰' : 'Set your Google API key to search')}</div>`;
+    return;
+  }
+  try { await loadGoogleMapsJsApi(); }
+  catch (e) {
+    resultsEl.innerHTML = `<div class="ma-isr-empty">${escapeHTML(currentLang === 'zh' ? 'Google API 載入失敗' : 'Couldn\'t reach Google')}</div>`;
+    return;
+  }
+  // Bias to the destination if known so we get hotels near the trip's city
+  const dest = currentTrip?.destination;
+  const req = { query, language: currentLang === 'zh' ? 'zh-TW' : 'en' };
+  if (dest?.lat && dest?.lng) {
+    req.location = new google.maps.LatLng(dest.lat, dest.lng);
+    req.radius = 20000;
+  }
+  const svc = new google.maps.places.PlacesService(document.createElement('div'));
+  let places;
+  try {
+    places = await placesCallWithTimeout(
+      (r, cb) => svc.textSearch(r, cb),
+      req,
+      { timeoutMs: 9000 }
+    );
+  } catch (e) {
+    resultsEl.innerHTML = `<div class="ma-isr-empty">${escapeHTML(currentLang === 'zh' ? '搜尋逾時' : 'Search timed out')}</div>`;
+    return;
+  }
+  if (!places || places.length === 0) {
+    resultsEl.innerHTML = `<div class="ma-isr-empty">${escapeHTML(currentLang === 'zh' ? '找不到結果' : 'No results')}</div>`;
+    return;
+  }
+  resultsEl.innerHTML = '';
+  places.slice(0, 8).forEach(p => {
+    if (!p.geometry?.location) return;
+    const slim = {
+      place_id: p.place_id,
+      name: p.name,
+      rating: p.rating,
+      user_ratings_total: p.user_ratings_total,
+      vicinity: p.vicinity || p.formatted_address,
+      photo: p.photos?.[0]?.getUrl?.({ maxWidth: 200, maxHeight: 200 }) || null,
+      lat: p.geometry.location.lat(),
+      lng: p.geometry.location.lng()
+    };
+    const row = document.createElement('div');
+    row.className = 'ma-isr-row';
+    row.innerHTML = `
+      <div class="ma-isr-thumb"></div>
+      <div class="ma-isr-info">
+        <div class="ma-isr-name">${escapeHTML(slim.name || '')}</div>
+        <div class="ma-isr-meta">
+          ${slim.rating ? `<span class="mpc-star">★ ${slim.rating.toFixed(1)}</span>` : ''}
+          ${slim.user_ratings_total ? ` (${formatCount(slim.user_ratings_total)})` : ''}
+          ${slim.vicinity ? ` · ${escapeHTML(slim.vicinity.split(',')[0])}` : ''}
+        </div>
+      </div>
+      <button class="ma-isr-add" aria-label="Set as base">A</button>
+    `;
+    const thumb = row.querySelector('.ma-isr-thumb');
+    if (slim.photo) thumb.style.backgroundImage = `url('${slim.photo}')`;
+    else applyGradientFallback(thumb, slim.name || slim.place_id);
+    row.addEventListener('click', () => setTripBase(slim));
+    resultsEl.appendChild(row);
+  });
+}
+
+/** Set the trip's hotels[0] to the chosen place and refresh the view. */
+function setTripBase(slim) {
+  if (!currentTrip || !slim) return;
+  currentTrip.hotels = currentTrip.hotels || [];
+  currentTrip.hotels[0] = {
+    place_id: slim.place_id,
+    name: slim.name,
+    lat: slim.lat,
+    lng: slim.lng,
+    address: slim.vicinity || '',
+    photo: slim.photo || null,
+    rating: slim.rating || null
+  };
+  try { tripStore.save(currentTrip); } catch (e) {}
+  showToast(currentLang === 'zh' ? '✓ 已設定據點' : '✓ Base set');
+  if (typeof teardownItinMap === 'function') teardownItinMap();
+  mobileNav.renderActive();
+}
+
 
 /* ─── Sheet swipe-down dismiss ──────────────────────────────────
  * Wires a grab handle so the user can drag-down a bottom sheet to
@@ -15663,6 +16012,150 @@ function wireSheetSwipeDismiss(grabEl, sheetEl) {
   grabEl.addEventListener('mousedown', (e) => { onStart(e); });
   document.addEventListener('mousemove', (e) => { if (dragging) onMove(e); });
   document.addEventListener('mouseup', onEnd);
+}
+
+/* ─── Destination autocomplete (new-trip sheet) ─────────────────
+ * As the user types in the Destination field, run Google Places
+ * AutocompleteService and show suggestions. Picking one fills in the
+ * input, stashes the place_id + coords in hidden fields, and dismisses
+ * the suggestions panel. Later, createNewTripFromSheet reads those
+ * fields so the trip's destination has real coordinates.
+ *
+ * Debounced 300ms so we don't spam the API. Suggestions are biased to
+ * cities and regions (no fast-food restaurants). */
+let _destAutocompleteTimer = null;
+function wireDestinationAutocomplete() {
+  const input = document.getElementById('maNtDest');
+  const suggest = document.getElementById('maNtSuggest');
+  if (!input || !suggest) return;
+  // Replace any previous handlers
+  input.oninput = null;
+  input.onfocus = null;
+  input.oninput = () => {
+    // Clear any previously-picked place_id when the user starts typing again
+    document.getElementById('maNtDestPlaceId').value = '';
+    document.getElementById('maNtDestLat').value = '';
+    document.getElementById('maNtDestLng').value = '';
+    clearTimeout(_destAutocompleteTimer);
+    const q = input.value.trim();
+    if (q.length < 2) {
+      suggest.style.display = 'none';
+      suggest.innerHTML = '';
+      return;
+    }
+    _destAutocompleteTimer = setTimeout(() => runDestAutocomplete(q), 300);
+  };
+  // Hide the panel when the user taps anywhere else in the sheet
+  document.addEventListener('click', (e) => {
+    if (suggest.style.display === 'none') return;
+    if (suggest.contains(e.target) || input.contains(e.target)) return;
+    suggest.style.display = 'none';
+  });
+}
+
+async function runDestAutocomplete(query) {
+  const suggest = document.getElementById('maNtSuggest');
+  if (!suggest) return;
+  if (!googleApiKey) {
+    suggest.style.display = 'block';
+    suggest.innerHTML = `<div class="ma-nt-suggest-empty">${escapeHTML(currentLang === 'zh' ? '請先設定 Google API 金鑰' : 'Set Google API key to enable suggestions')}</div>`;
+    return;
+  }
+  try { await loadGoogleMapsJsApi(); }
+  catch (e) {
+    suggest.style.display = 'block';
+    suggest.innerHTML = `<div class="ma-nt-suggest-empty">${escapeHTML(currentLang === 'zh' ? 'Google API 載入失敗' : 'Couldn\'t reach Google')}</div>`;
+    return;
+  }
+  // Use AutocompleteService for predictions, biased to localities/regions
+  // so we surface places like "Kyoto, Japan" instead of cafes named Kyoto.
+  try {
+    const svc = new google.maps.places.AutocompleteService();
+    const preds = await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('TIMEOUT')), 6000);
+      svc.getPlacePredictions({
+        input: query,
+        types: ['(regions)'],   // restrict to localities, regions, countries
+        language: currentLang === 'zh' ? 'zh-TW' : 'en'
+      }, (results, status) => {
+        clearTimeout(timer);
+        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+          resolve(results);
+        } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+          resolve([]);
+        } else {
+          reject(new Error(status || 'UNKNOWN'));
+        }
+      });
+    });
+    suggest.style.display = 'block';
+    suggest.innerHTML = '';
+    if (preds.length === 0) {
+      suggest.innerHTML = `<div class="ma-nt-suggest-empty">${escapeHTML(currentLang === 'zh' ? '無建議' : 'No matches')}</div>`;
+      return;
+    }
+    preds.slice(0, 6).forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'ma-nt-suggest-row';
+      const main = p.structured_formatting?.main_text || p.description;
+      const sub = p.structured_formatting?.secondary_text || '';
+      row.innerHTML = `
+        <div class="ma-nt-suggest-main">${escapeHTML(main)}</div>
+        ${sub ? `<div class="ma-nt-suggest-sub">${escapeHTML(sub)}</div>` : ''}
+      `;
+      row.addEventListener('click', () => pickDestSuggestion(p));
+      suggest.appendChild(row);
+    });
+  } catch (e) {
+    console.warn('[Dest autocomplete]', e?.message || e);
+    suggest.style.display = 'block';
+    suggest.innerHTML = `<div class="ma-nt-suggest-empty">${escapeHTML(currentLang === 'zh' ? '搜尋失敗' : 'Search failed')}</div>`;
+  }
+}
+
+/** User tapped a suggestion. Fetch coordinates via getDetails (lightweight
+ *  fields-only call) and stash in hidden fields for createNewTripFromSheet. */
+async function pickDestSuggestion(prediction) {
+  const input = document.getElementById('maNtDest');
+  const suggest = document.getElementById('maNtSuggest');
+  const pidEl = document.getElementById('maNtDestPlaceId');
+  const latEl = document.getElementById('maNtDestLat');
+  const lngEl = document.getElementById('maNtDestLng');
+  if (!input || !suggest) return;
+  // Fill the input immediately for responsive feel
+  const main = prediction.structured_formatting?.main_text || prediction.description;
+  input.value = prediction.description;
+  suggest.style.display = 'none';
+  suggest.innerHTML = '';
+  if (pidEl) pidEl.value = prediction.place_id || '';
+
+  // Resolve coordinates so the new trip's map can center on the destination
+  try {
+    const svc = new google.maps.places.PlacesService(document.createElement('div'));
+    const detail = await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('TIMEOUT')), 6000);
+      svc.getDetails({
+        placeId: prediction.place_id,
+        fields: ['geometry', 'name', 'formatted_address']
+      }, (p, status) => {
+        clearTimeout(timer);
+        if (status === google.maps.places.PlacesServiceStatus.OK && p) resolve(p);
+        else reject(new Error(status || 'UNKNOWN'));
+      });
+    });
+    const lat = detail.geometry?.location?.lat();
+    const lng = detail.geometry?.location?.lng();
+    if (latEl && lat) latEl.value = String(lat);
+    if (lngEl && lng) lngEl.value = String(lng);
+    // Use the resolved short name when available — looks better than the full
+    // "Kyoto, Kyoto Prefecture, Japan" string in the trip title
+    if (detail.name && detail.name.length < 40) {
+      input.value = detail.name;
+    }
+  } catch (e) {
+    console.warn('[Dest pick]', e?.message || e);
+    // Coords are nice-to-have. If they fail, we still have the name.
+  }
 }
 
 /* ─── New Trip flow ───────────────────────────────────────────
@@ -15738,7 +16231,12 @@ function createNewTripFromSheet() {
     return;
   }
 
-  // Build the trip object — mirrors the shape used by seeded trips
+  // Build the trip object — mirrors the shape used by seeded trips.
+  // Read the autocomplete-picked place_id and coords if available.
+  const destPlaceId = (document.getElementById('maNtDestPlaceId')?.value || '').trim();
+  const destLat = parseFloat(document.getElementById('maNtDestLat')?.value || '');
+  const destLng = parseFloat(document.getElementById('maNtDestLng')?.value || '');
+
   const id = `trip-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
   const itin = [];
   for (let i = 0; i < days; i++) {
@@ -15748,10 +16246,15 @@ function createNewTripFromSheet() {
       // No customName — getDayName() will return "Day N"
     });
   }
+  const destination = { name: destName };
+  if (destPlaceId) destination.place_id = destPlaceId;
+  if (isFinite(destLat)) destination.lat = destLat;
+  if (isFinite(destLng)) destination.lng = destLng;
+
   const newTrip = {
     id,
     title: { en: destName, zh: destName },
-    destination: { name: destName },
+    destination,
     startDate: startIso,
     endDate: endIso,
     days,
