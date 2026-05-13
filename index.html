@@ -4749,6 +4749,99 @@
   .ma-map-searchbar.has-value .ma-map-day-chip {
     padding: 6px;
   }
+  /* Hide the caret when the search has focus / has a value; the chip
+     collapses to just the number then, so the caret would look misaligned */
+  .ma-map-searchbar.has-value .ma-map-day-caret {
+    display: none;
+  }
+  .ma-map-day-caret {
+    font-size: 10px;
+    color: var(--gray-500, #8a877f);
+    margin-left: 2px;
+    margin-right: 2px;
+    transition: transform 0.18s;
+    flex-shrink: 0;
+  }
+  .ma-map-day-chip[aria-expanded="true"] .ma-map-day-caret {
+    transform: rotate(180deg);
+    color: var(--ink, #1a1816);
+  }
+  .ma-map-day-chip[aria-expanded="true"] {
+    background: var(--gray-100, #f0eee9);
+  }
+
+  /* Day dropdown — anchored under the chip on the right side of search bar.
+   * On narrow phones this overlaps the search bar's right portion. */
+  .ma-map-day-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 220px;
+    max-width: 280px;
+    max-height: 60vh;
+    overflow-y: auto;
+    background: var(--paper, #fff);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    z-index: 10;
+    padding: 6px;
+  }
+  .ma-map-day-dropdown .mddr {
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: 10px; align-items: center;
+    padding: 10px 10px;
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .ma-map-day-dropdown .mddr:active,
+  .ma-map-day-dropdown .mddr:hover {
+    background: var(--gray-50, #fafaf9);
+  }
+  .ma-map-day-dropdown .mddr.is-current {
+    background: var(--gray-100, #f0eee9);
+  }
+  .ma-map-day-dropdown .mddr-num {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--gray-100, #f0eee9);
+    color: var(--ink, #1a1816);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800; font-size: 13px;
+  }
+  .ma-map-day-dropdown .mddr.is-current .mddr-num {
+    background: var(--ink, #1a1816); color: white;
+  }
+  .ma-map-day-dropdown .mddr.is-today .mddr-num {
+    background: var(--vermillion, #d04a3a); color: white;
+  }
+  .ma-map-day-dropdown .mddr-meta {
+    min-width: 0;
+  }
+  .ma-map-day-dropdown .mddr-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+    color: var(--gray-500, #8a877f);
+    text-transform: uppercase;
+  }
+  .ma-map-day-dropdown .mddr-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600; font-size: 13px;
+    color: var(--ink, #1a1816);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    margin-top: 2px;
+  }
+  .ma-map-day-dropdown .mddr-count {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px; color: var(--gray-500, #8a877f);
+    margin-top: 1px;
+  }
 
   /* Search results panel — slides down from below the search bar */
   .ma-map-search-results {
@@ -5518,13 +5611,20 @@
           <button class="ma-map-search-clear" id="maMapSearchClear"
                   aria-label="Clear">✕</button>
           <button class="ma-map-day-chip" id="maMapDayChip"
-                  aria-label="Open day list">
+                  aria-label="Switch day"
+                  aria-haspopup="listbox"
+                  aria-expanded="false">
             <span class="ma-map-day-num" id="maMapDayNum">—</span>
             <span class="ma-map-day-chip-text">
               <span class="ma-map-day-eyebrow" id="maMapDayEyebrow">—</span>
               <span class="ma-map-day-title" id="maMapDayTitle">—</span>
             </span>
+            <span class="ma-map-day-caret" aria-hidden="true">▾</span>
           </button>
+        </div>
+        <!-- Day dropdown — anchored to the chip, shows full trip's days. -->
+        <div class="ma-map-day-dropdown" id="maMapDayDropdown" style="display:none" role="listbox">
+          <!-- Filled dynamically when chip is tapped -->
         </div>
         <!-- Hidden by default. Shown when the search input has results. -->
         <div class="ma-map-search-results" id="maMapSearchResults"
@@ -13007,6 +13107,10 @@ const mobileViewRenderers = {
     // If the map is already showing this day and a map is live, just refresh
     // the chrome (which is cheap) and skip the heavy canvas rebuild.
     const sameDay = (mobileMap.day === dayIdx) && (mobileMap.map !== null);
+    // Switching days while a preview is active is jarring — exit preview first
+    if (!sameDay && mobileMap.previewPlace) {
+      exitMapPreviewMode();
+    }
     mobileMap.day = dayIdx;
     if (!sameDay) {
       mobileMap.selectedIdx = 0;
@@ -13040,7 +13144,15 @@ const mobileMap = {
   type: null,        // 'google' | 'leaflet' | null
   map: null,
   markers: [],       // ordered: hotel (if any) at [0], then stops
-  polyline: null
+  polyline: null,
+  // Preview mode — set when the user taps a search result to "preview"
+  // a candidate stop before adding it. We draw a dashed vermillion line
+  // from the day's last stop (or hotel) to the candidate, plus a temporary
+  // vermillion pin at the candidate location, and the bottom card shows
+  // the candidate's info instead of the active stop.
+  previewPlace: null,       // {place_id, name, lat, lng, ...} or null
+  previewMarker: null,      // the candidate pin (Google Marker or Leaflet Marker)
+  previewLine: null         // the dashed preview polyline
 };
 
 /** Show the empty state instead of the map. */
@@ -13158,6 +13270,172 @@ function updateMobileMapStopCard() {
   }
 }
 
+/* ─── MAP PREVIEW MODE ──────────────────────────────────────────
+ * When the user taps a search result, we visually preview it on the map:
+ *   • A vermillion pin appears at the candidate location
+ *   • A dashed vermillion line connects the day's last stop (or hotel)
+ *     to the candidate, so the user can judge distance at a glance
+ *   • The bottom card swaps to the candidate's info, with "Add to day"
+ *     as the primary CTA instead of "Navigate"
+ *
+ * Tapping a real pin OR clearing the search input exits preview mode.
+ */
+function enterMapPreviewMode(slim) {
+  if (!slim || !mobileMap.map) return;
+  // Clear any previous preview
+  clearMapPreviewVisuals();
+  mobileMap.previewPlace = slim;
+
+  // Find the anchor — last stop of current day, or hotel as fallback
+  const d = itinerary[mobileMap.day];
+  const stops = (d?.stops || []).filter(s => s.lat && s.lng);
+  const hotel = currentTrip?.hotels?.[0];
+  let anchor = null;
+  if (stops.length > 0) {
+    anchor = { lat: stops[stops.length - 1].lat, lng: stops[stops.length - 1].lng };
+  } else if (hotel?.lat) {
+    anchor = { lat: hotel.lat, lng: hotel.lng };
+  }
+
+  if (mobileMap.type === 'google' && typeof google !== 'undefined') {
+    // Vermillion candidate pin
+    const previewSvg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="38" height="44" viewBox="0 0 38 44">
+        <path d="M19 0 C8.5 0 0 8.5 0 19 c0 14 19 25 19 25 s19-11 19-25 C38 8.5 29.5 0 19 0 z"
+              fill="#d04a3a" stroke="#1a1816" stroke-width="1.6"/>
+        <circle cx="19" cy="19" r="6" fill="#ffffff"/>
+      </svg>`;
+    mobileMap.previewMarker = new google.maps.Marker({
+      position: { lat: slim.lat, lng: slim.lng },
+      map: mobileMap.map,
+      icon: {
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(previewSvg),
+        scaledSize: new google.maps.Size(38, 44),
+        anchor: new google.maps.Point(19, 44)
+      },
+      zIndex: 200
+    });
+    // Dashed vermillion preview line from anchor → candidate
+    if (anchor) {
+      mobileMap.previewLine = new google.maps.Polyline({
+        path: [{ lat: anchor.lat, lng: anchor.lng }, { lat: slim.lat, lng: slim.lng }],
+        map: mobileMap.map,
+        strokeOpacity: 0,
+        icons: [{
+          icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 3.5, strokeColor: '#d04a3a' },
+          offset: '0', repeat: '14px'
+        }]
+      });
+    }
+    // Pan to fit anchor + candidate
+    if (anchor) {
+      const bounds = new google.maps.LatLngBounds();
+      bounds.extend({ lat: anchor.lat, lng: anchor.lng });
+      bounds.extend({ lat: slim.lat, lng: slim.lng });
+      mobileMap.map.fitBounds(bounds, { top: 130, bottom: 240, left: 40, right: 80 });
+    } else {
+      mobileMap.map.panTo({ lat: slim.lat, lng: slim.lng });
+    }
+  } else if (mobileMap.type === 'leaflet' && typeof L !== 'undefined') {
+    const cls = 'ma-pin is-active';
+    mobileMap.previewMarker = L.marker([slim.lat, slim.lng], {
+      icon: L.divIcon({
+        className: '',
+        html: `<div class="${cls}" style="width:34px;height:34px;font-size:13px">+</div>`,
+        iconSize: [34, 34], iconAnchor: [17, 17]
+      }),
+      zIndexOffset: 2000
+    }).addTo(mobileMap.map);
+    if (anchor) {
+      mobileMap.previewLine = L.polyline(
+        [[anchor.lat, anchor.lng], [slim.lat, slim.lng]],
+        { color: '#d04a3a', weight: 3, opacity: 0.95, dashArray: '4,8', lineCap: 'round' }
+      ).addTo(mobileMap.map);
+      mobileMap.map.fitBounds([[anchor.lat, anchor.lng], [slim.lat, slim.lng]],
+        { paddingTopLeft: [40, 130], paddingBottomRight: [80, 240] });
+    } else {
+      mobileMap.map.panTo([slim.lat, slim.lng]);
+    }
+  }
+
+  // Update the bottom card to show the candidate
+  renderMapPreviewCard(slim, anchor);
+}
+
+function clearMapPreviewVisuals() {
+  try {
+    if (mobileMap.type === 'google') {
+      if (mobileMap.previewMarker?.setMap) mobileMap.previewMarker.setMap(null);
+      if (mobileMap.previewLine?.setMap) mobileMap.previewLine.setMap(null);
+    } else if (mobileMap.type === 'leaflet') {
+      if (mobileMap.previewMarker?.remove) mobileMap.previewMarker.remove();
+      if (mobileMap.previewLine?.remove) mobileMap.previewLine.remove();
+    }
+  } catch (e) {}
+  mobileMap.previewMarker = null;
+  mobileMap.previewLine = null;
+}
+
+function exitMapPreviewMode() {
+  if (!mobileMap.previewPlace) return;
+  clearMapPreviewVisuals();
+  mobileMap.previewPlace = null;
+  // Restore the regular bottom card for the active stop
+  updateMobileMapStopCard();
+}
+
+function renderMapPreviewCard(slim, anchor) {
+  const bottom = document.getElementById('maMapBottom');
+  if (bottom) bottom.style.display = '';
+  const eyebrowEl = document.getElementById('maMapStopEyebrow');
+  const nameEl = document.getElementById('maMapStopName');
+  const metaEl = document.getElementById('maMapStopMeta');
+  const thumbEl = document.getElementById('maMapStopThumb');
+
+  // Eyebrow: "PREVIEW · X km from last stop"
+  let distStr = '';
+  if (anchor) {
+    const km = haversineKm(anchor.lat, anchor.lng, slim.lat, slim.lng);
+    distStr = km < 1
+      ? ` · ${Math.round(km * 1000)} m`
+      : ` · ${km.toFixed(km < 10 ? 1 : 0)} km`;
+  }
+  if (eyebrowEl) {
+    const eyebrowPrefix = currentLang === 'zh' ? '預覽' : 'PREVIEW';
+    const fromLast = (currentLang === 'zh' ? '離最後一站' : 'from last stop');
+    eyebrowEl.textContent = `${eyebrowPrefix}${anchor ? ` · ${fromLast}${distStr}` : ''}`;
+  }
+  if (nameEl) nameEl.textContent = slim.name || '—';
+  if (metaEl) {
+    const parts = [];
+    if (slim.rating) parts.push(`★ ${slim.rating.toFixed(1)}`);
+    if (slim.user_ratings_total) parts.push(`(${formatCount(slim.user_ratings_total)})`);
+    if (slim.vicinity) parts.push(slim.vicinity.split(',')[0]);
+    metaEl.textContent = parts.join(' · ');
+  }
+  if (thumbEl) {
+    if (slim.photo) {
+      thumbEl.style.backgroundImage = `url('${slim.photo}')`;
+    } else {
+      applyGradientFallback(thumbEl, slim.name || slim.place_id);
+    }
+  }
+
+  // Swap the CTA: "Navigate →" becomes "Add to day"
+  const cta = document.getElementById('maMapNavigate');
+  if (cta) {
+    cta.textContent = currentLang === 'zh' ? '加入行程 →' : 'Add to day →';
+    cta.onclick = () => openPickDaySheet(slim);
+  }
+  // The ↑ "jump to" button instead becomes a "dismiss preview" button
+  const jumpBtn = document.getElementById('maMapJumpToStop');
+  if (jumpBtn) {
+    jumpBtn.textContent = '✕';
+    jumpBtn.setAttribute('aria-label', 'Close preview');
+    jumpBtn.onclick = () => exitMapPreviewMode();
+  }
+}
+
 /** Render the actual map element (Google if API key, else Leaflet). */
 async function renderMobileMapCanvas() {
   const canvas = document.getElementById('maMapCanvas');
@@ -13208,11 +13486,16 @@ function teardownMobileMap() {
     if (mobileMap.type === 'google') {
       (mobileMap.markers || []).forEach(m => { if (m?.setMap) m.setMap(null); });
       if (mobileMap.polyline?.setMap) mobileMap.polyline.setMap(null);
+      if (mobileMap.previewMarker?.setMap) mobileMap.previewMarker.setMap(null);
+      if (mobileMap.previewLine?.setMap) mobileMap.previewLine.setMap(null);
     }
   } catch (e) {}
   mobileMap.map = null;
   mobileMap.markers = [];
   mobileMap.polyline = null;
+  mobileMap.previewPlace = null;
+  mobileMap.previewMarker = null;
+  mobileMap.previewLine = null;
   mobileMap.type = null;
 }
 
@@ -13800,6 +14083,76 @@ async function loadExploreCategoryPlaces(cat, center, sectionEl) {
  * Same Pick-a-Day flow is reused when tapping an Explore card.
  */
 
+/* ─── MAP DAY DROPDOWN ──────────────────────────────────────────
+ * Tapping the day chip in the Map search bar opens a popover listing
+ * all days of the current trip. Picking one switches the map to that
+ * day without leaving the Map tab.
+ */
+function toggleMapDayDropdown() {
+  const dd = document.getElementById('maMapDayDropdown');
+  const chip = document.getElementById('maMapDayChip');
+  if (!dd || !chip) return;
+  const isOpen = dd.style.display !== 'none';
+  if (isOpen) {
+    closeMapDayDropdown();
+  } else {
+    openMapDayDropdown();
+  }
+}
+
+function openMapDayDropdown() {
+  const dd = document.getElementById('maMapDayDropdown');
+  const chip = document.getElementById('maMapDayChip');
+  if (!dd || !chip || !currentTrip) return;
+  // Build the list fresh each open so stop counts and today highlight are accurate
+  dd.innerHTML = '';
+  const todayIso = isoToday();
+  const daysEN = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const monthsEN = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  itinerary.forEach((d, idx) => {
+    const row = document.createElement('button');
+    const isToday = d.isoDate === todayIso;
+    const isCurrent = idx === mobileMap.day;
+    row.className = 'mddr' + (isCurrent ? ' is-current' : '') + (isToday ? ' is-today' : '');
+    row.setAttribute('role', 'option');
+    row.setAttribute('aria-selected', isCurrent ? 'true' : 'false');
+    const date = new Date((d.isoDate || '') + 'T00:00:00');
+    const eyebrow = isNaN(date.getTime()) ? '' :
+      `${daysEN[date.getDay()]}, ${monthsEN[date.getMonth()]} ${date.getDate()}` +
+      (isToday ? ' · ' + (currentLang === 'zh' ? '今日' : 'TODAY') : '');
+    const title = d.title?.en || d.title?.[currentLang] ||
+      (currentLang === 'zh' ? `第 ${idx+1} 天` : `Day ${idx+1}`);
+    const stopCount = d.stops?.length || 0;
+    row.innerHTML = `
+      <div class="mddr-num">${idx + 1}</div>
+      <div class="mddr-meta">
+        <div class="mddr-eyebrow">${escapeHTML(eyebrow)}</div>
+        <div class="mddr-title">${escapeHTML(title)}</div>
+        <div class="mddr-count">${stopCount} ${currentLang === 'zh' ? '個地點' : (stopCount === 1 ? 'stop' : 'stops')}</div>
+      </div>
+    `;
+    row.addEventListener('click', () => {
+      closeMapDayDropdown();
+      // Switch the map to this day. If it's already the current day, do nothing.
+      if (idx === mobileMap.day) return;
+      mobileNav.stateByView['map-home'] = { dayIdx: idx };
+      // Trigger a re-render of the active view (map-home)
+      mobileNav.renderActive();
+    });
+    dd.appendChild(row);
+  });
+  dd.style.display = 'block';
+  chip.setAttribute('aria-expanded', 'true');
+}
+
+function closeMapDayDropdown() {
+  const dd = document.getElementById('maMapDayDropdown');
+  const chip = document.getElementById('maMapDayChip');
+  if (!dd || !chip) return;
+  dd.style.display = 'none';
+  chip.setAttribute('aria-expanded', 'false');
+}
+
 /** Run a Google Places text search and render results into the panel.
  *  Biased to the current trip's destination (or current day midpoint). */
 async function runMapSearch(query) {
@@ -13884,16 +14237,22 @@ async function runMapSearch(query) {
       if (slim.photo) thumb.style.backgroundImage = `url('${slim.photo}')`;
       else applyGradientFallback(thumb, slim.name || slim.place_id);
 
-      // Click on row body → center map on it + show in bottom card
+      // Click on row body → enter "preview mode" on the map:
+      //   1. Show this searched place in the bottom card (with photo, rating,
+      //      address) instead of the active stop
+      //   2. Draw a vermillion dashed preview line from the last stop of the
+      //      current day to this place, so the user can visually judge how
+      //      far away it is
+      //   3. Pan the map to keep both endpoints visible
+      // Tapping a real pin OR clearing search exits preview mode.
       row.addEventListener('click', (e) => {
         if (e.target.closest('.ma-msr-add')) return; // handled below
-        if (mobileMap.map) {
-          if (mobileMap.type === 'google') mobileMap.map.panTo({ lat: slim.lat, lng: slim.lng });
-          else if (mobileMap.type === 'leaflet') mobileMap.map.panTo([slim.lat, slim.lng]);
-        }
-        // Close the results panel so user can see the map
+        enterMapPreviewMode(slim);
+        // Collapse the results panel so the user can see the map
         const searchInput = document.getElementById('maMapSearchInput');
+        const resultsEl2 = document.getElementById('maMapSearchResults');
         if (searchInput) searchInput.blur();
+        if (resultsEl2) resultsEl2.style.display = 'none';
       });
       // + button → open Pick-a-Day sheet
       row.querySelector('.ma-msr-add').addEventListener('click', (e) => {
@@ -14097,6 +14456,8 @@ function renderMobileMapGoogle(canvas, points) {
     });
     if (p.kind === 'stop') {
       marker.addListener('click', () => {
+        // Tapping a real stop pin always exits preview mode if it was active
+        if (mobileMap.previewPlace) exitMapPreviewMode();
         const newIdx = p.idx;
         const prevIdx = mobileMap.selectedIdx;
         if (newIdx === prevIdx) return;
@@ -14174,6 +14535,7 @@ function renderMobileMapLeaflet(canvas, points) {
     }).addTo(map);
     if (p.kind === 'stop') {
       marker.on('click', () => {
+        if (mobileMap.previewPlace) exitMapPreviewMode();
         const newIdx = p.idx;
         const prevIdx = mobileMap.selectedIdx;
         if (newIdx === prevIdx) return;
@@ -15819,7 +16181,25 @@ function setupMobileShell() {
     mobileNav.switchTab('trips');
   };
   document.getElementById('maMapListBtn')?.addEventListener('click', mapListHandler);
-  document.getElementById('maMapDayChip')?.addEventListener('click', mapListHandler);
+
+  // Day chip on the map's search bar — opens a popover dropdown listing all
+  // days, letting the user switch which day the map shows WITHOUT leaving
+  // the Map tab. (The old behavior was to navigate to Trips, which felt
+  // disorienting; people expect a day picker to switch in place.)
+  document.getElementById('maMapDayChip')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleMapDayDropdown();
+  });
+  // Dismiss the dropdown if the user taps anywhere else on the map view
+  document.addEventListener('click', (e) => {
+    const dropdown = document.getElementById('maMapDayDropdown');
+    const chip = document.getElementById('maMapDayChip');
+    if (!dropdown || !chip) return;
+    if (dropdown.style.display === 'none') return;
+    // If the click was inside the chip or dropdown, ignore — they handle it
+    if (chip.contains(e.target) || dropdown.contains(e.target)) return;
+    closeMapDayDropdown();
+  });
 
   // ─── Map search input ───
   // Debounced textSearch + render results panel.
@@ -15845,6 +16225,8 @@ function setupMobileShell() {
       if (searchInput) searchInput.value = '';
       if (searchBar) searchBar.classList.remove('has-value');
       if (resultsEl) { resultsEl.style.display = 'none'; resultsEl.innerHTML = ''; }
+      // Clearing the search also dismisses any active preview
+      if (mobileMap.previewPlace) exitMapPreviewMode();
     });
   }
 
