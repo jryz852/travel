@@ -4445,6 +4445,134 @@
     font-weight: 800; margin-right: 4px;
   }
 
+  /* Budget chip — tappable variant that opens the edit sheet. Colors
+     itself based on whether today's spend is over/under the daily target
+     (set when the trip has a total budget). */
+  .ma-chip-budget {
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+    /* override default button text alignment */
+    text-align: center;
+  }
+  .ma-chip-budget:active { transform: scale(0.96); }
+  .ma-chip-budget.is-neutral {
+    /* No budget set yet — neutral white pill with a faint dashed outline
+       so it reads as "interactive" even without color */
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.08);
+  }
+  .ma-chip-budget.is-under {
+    background: #e8f5ec;
+    color: #2f7a3e;
+    box-shadow: 0 0 0 1px rgba(47, 122, 62, 0.20);
+  }
+  .ma-chip-budget.is-under strong { color: #2f7a3e; }
+  .ma-chip-budget.is-over {
+    background: #fdecea;
+    color: var(--vermillion, #d04a3a);
+    box-shadow: 0 0 0 1px rgba(208, 74, 58, 0.22);
+  }
+  .ma-chip-budget.is-over strong { color: var(--vermillion, #d04a3a); }
+
+  /* Trip-wide budget bar — fills as the user spends. Sits below the
+     chips, full-width. Tap to edit budget. */
+  .ma-budget-bar {
+    display: block;
+    width: calc(100% - 36px);
+    margin: 8px 18px 0;
+    padding: 8px 12px 10px;
+    background: var(--paper, #fff);
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.05);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s;
+  }
+  .ma-budget-bar:active { background: var(--gray-50, #fafaf9); }
+  .ma-budget-bar-row {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 6px;
+    font-family: 'Inter', sans-serif;
+  }
+  .ma-budget-bar-label {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--gray-500, #8a877f);
+  }
+  .ma-budget-bar-value {
+    font-size: 12px; font-weight: 600;
+    color: var(--ink, #1a1816);
+  }
+  .ma-budget-bar.is-over .ma-budget-bar-value {
+    color: var(--vermillion, #d04a3a);
+  }
+  .ma-budget-bar-track {
+    height: 6px;
+    background: var(--gray-100, #f0eee9);
+    border-radius: 100px;
+    overflow: hidden;
+    position: relative;
+  }
+  .ma-budget-bar-fill {
+    height: 100%;
+    border-radius: 100px;
+    background: var(--ink, #1a1816);
+    transition: width 0.3s ease, background 0.3s;
+  }
+  /* Color graduation: green when comfortable (<70%), neutral 70-90%,
+     warning 90-100%, vermillion >100% */
+  .ma-budget-bar.is-good .ma-budget-bar-fill { background: #2f7a3e; }
+  .ma-budget-bar.is-warn .ma-budget-bar-fill { background: #d97706; }
+  .ma-budget-bar.is-over .ma-budget-bar-fill { background: var(--vermillion, #d04a3a); }
+
+  /* Budget edit sheet — currency-aware numeric input */
+  .ma-budget-sheet {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+  .ma-budget-input-row {
+    display: flex; align-items: stretch;
+    margin: 8px 14px 6px;
+    background: var(--gray-50, #fafaf9);
+    border: 1.5px solid rgba(0,0,0,0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .ma-budget-input-row:focus-within {
+    border-color: var(--ink, #1a1816);
+    background: var(--paper, #fff);
+  }
+  .ma-budget-input-symbol {
+    padding: 14px 14px 14px 18px;
+    font-family: 'Inter', sans-serif;
+    font-size: 18px; font-weight: 700;
+    color: var(--gray-500, #8a877f);
+  }
+  .ma-budget-input {
+    flex: 1; min-width: 0;
+    background: transparent;
+    border: none;
+    padding: 14px 18px 14px 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 22px; font-weight: 700;
+    color: var(--ink, #1a1816);
+    outline: none;
+    -moz-appearance: textfield;
+    width: 100%;
+  }
+  .ma-budget-input::-webkit-outer-spin-button,
+  .ma-budget-input::-webkit-inner-spin-button {
+    -webkit-appearance: none; margin: 0;
+  }
+  .ma-budget-hint {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--gray-500, #8a877f);
+    padding: 4px 16px 16px;
+    text-align: center;
+  }
+
   /* Stops list inside day itinerary */
   .ma-stops {
     background: var(--paper, #fff);
@@ -6310,6 +6438,19 @@
         <div class="ma-day-chips" id="maDayChips">
           <!-- Filled dynamically: stops · planned · cost · travel · weather -->
         </div>
+        <!-- Trip budget bar — only shown when the trip has a budget set.
+             Visualizes total spend across all days as a filled bar. Color
+             shifts from neutral → vermillion when over. Tap to edit budget. -->
+        <button class="ma-budget-bar" id="maTripBudgetBar" type="button"
+                style="display:none" aria-label="Edit trip budget">
+          <div class="ma-budget-bar-row">
+            <span class="ma-budget-bar-label" id="maBudgetBarLabel">—</span>
+            <span class="ma-budget-bar-value" id="maBudgetBarValue">—</span>
+          </div>
+          <div class="ma-budget-bar-track">
+            <div class="ma-budget-bar-fill" id="maBudgetBarFill"></div>
+          </div>
+        </button>
       </div>
 
       <!-- Inline search bar — mirrors the Map tab so users can find and
@@ -6468,6 +6609,31 @@
         <div class="ma-rename-actions">
           <button class="ma-sheet-cancel" data-action="back" data-i18n="ma-cancel">Cancel</button>
           <button class="ma-rename-save" id="maRenameDaySave" data-i18n="ma-save">Save</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- View: Budget editor — small bottom sheet for setting the trip's
+         total budget. Stored on currentTrip.budget in JPY internally. -->
+    <section class="ma-view ma-view-modal ma-sheet-view" data-view="budget-edit" data-tab="trips">
+      <div class="ma-sheet-backdrop" data-action="back"></div>
+      <div class="ma-sheet ma-budget-sheet">
+        <div class="ma-stop-grabber"></div>
+        <div class="ma-sheet-title" data-i18n="ma-budget-title">Trip budget</div>
+        <div class="ma-sheet-subtitle" id="maBudgetSheetSub">—</div>
+
+        <div class="ma-budget-input-row">
+          <span class="ma-budget-input-symbol" id="maBudgetSymbol">¥</span>
+          <input type="number" class="ma-budget-input" id="maBudgetInput"
+                 inputmode="numeric" pattern="[0-9]*"
+                 min="0" max="99999999" step="100"
+                 autocomplete="off" />
+        </div>
+        <div class="ma-budget-hint" id="maBudgetHint">—</div>
+
+        <div class="ma-rename-actions">
+          <button class="ma-sheet-cancel" data-action="back" data-i18n="ma-cancel">Cancel</button>
+          <button class="ma-rename-save" id="maBudgetSave" data-i18n="ma-save">Save</button>
         </div>
       </div>
     </section>
@@ -7428,6 +7594,7 @@ const i18n = {
     "ma-save": "Save",
     "ma-rename-day": "Rename day",
     "ma-rename-hint": "Leave blank to reset to default.",
+    "ma-budget-title": "Trip budget",
     "ma-new-trip": "Add new trip",
     "ma-new-trip-sub": "Plan another adventure",
     "ma-nt-title": "New trip",
@@ -7685,6 +7852,7 @@ const i18n = {
     "ma-save": "儲存",
     "ma-rename-day": "重新命名",
     "ma-rename-hint": "留空即可重設為預設值。",
+    "ma-budget-title": "行程預算",
     "ma-new-trip": "新增行程",
     "ma-new-trip-sub": "規劃下一段旅程",
     "ma-nt-title": "新增行程",
@@ -13828,13 +13996,44 @@ const mobileViewRenderers = {
       }
       // Time planned — rough: 1h per stop
       const hoursPlanned = stopsCount;
+
+      // Budget context — compute over/under for today's cost so the chip
+      // can color-code itself. Daily target = (total budget / days).
+      // If no trip budget is set, the chip stays neutral (just shows cost).
+      const tripBudget = Number(currentTrip.budget || 0);    // stored in JPY
+      const daysInTrip = Math.max(1, itinerary.length);
+      const dailyTargetJpy = tripBudget > 0 ? tripBudget / daysInTrip : 0;
+      // Stop costs are stored in JPY (per existing convention), so compare apples-to-apples
+      const dailyOverUnder = dailyTargetJpy > 0 ? cost - dailyTargetJpy : 0;
+      // Display value in user currency
+      const costDisplay = (typeof jpyTo === 'function') ? jpyTo(displayCurrency, cost) : cost;
+      const costStr = `${symbol}${Math.round(costDisplay).toLocaleString()}`;
+      // Color class for budget chip:
+      //   no budget   → neutral
+      //   under (>=0) → green-tinted
+      //   over        → vermillion
+      let budgetCls = 'is-neutral';
+      if (tripBudget > 0) {
+        budgetCls = dailyOverUnder > 0 ? 'is-over' : 'is-under';
+      }
+
       chips.innerHTML = `
         <div class="ma-chip" id="maDayWeatherChip" style="display:none"></div>
         <div class="ma-chip"><strong>${stopsCount}</strong>${currentLang === 'zh' ? '景點' : 'stops'}</div>
         <div class="ma-chip"><strong>${hoursPlanned}h</strong>${currentLang === 'zh' ? '安排' : 'planned'}</div>
-        ${cost > 0 ? `<div class="ma-chip"><strong>${symbol}${Math.round(cost).toLocaleString()}</strong>${currentLang === 'zh' ? '今日' : 'today'}</div>` : ''}
+        <button class="ma-chip ma-chip-budget ${budgetCls}" id="maDayBudgetChip" type="button" aria-label="Edit budget">
+          <strong>${costStr}</strong>${currentLang === 'zh' ? '今日' : 'today'}
+        </button>
         ${km > 0 ? `<div class="ma-chip"><strong>${km.toFixed(km < 10 ? 1 : 0)} km</strong>${currentLang === 'zh' ? '路程' : 'travel'}</div>` : ''}
       `;
+      // Wire the budget chip to open the edit sheet
+      document.getElementById('maDayBudgetChip')?.addEventListener('click', openBudgetSheet);
+
+      // Trip-wide budget bar — sits below the chips strip. Visualizes
+      // total trip spend vs total budget so the user can see at a glance
+      // whether the whole trip is on track, not just one day.
+      renderTripBudgetBar();
+
       // Async: fetch weather for this trip and populate this day's chip
       if (typeof fetchTripWeather === 'function') {
         fetchTripWeather(currentTrip).then(byDate => {
@@ -14037,6 +14236,12 @@ const mobileViewRenderers = {
           showToast(currentLang === 'zh'
             ? `✓ 已刪除 ${removed?.name?.zh || removed?.name?.en || ''}`
             : `✓ Removed ${removed?.name?.en || removed?.name?.zh || 'stop'}`);
+          // Force the inline day-map to fully rebuild so pin numbers
+          // reflect the new array order. The renderer's same-day
+          // short-circuit otherwise leaves stale pins.
+          if (typeof teardownItinMap === 'function') teardownItinMap();
+          // Same for the full-screen MAP tab — its day pins also need fresh numbers
+          if (typeof teardownMobileMap === 'function') teardownMobileMap();
           // Rebuild the day-itinerary view (refreshes pins on map too)
           mobileNav.renderActive();
         });
@@ -14226,6 +14431,12 @@ const mobileViewRenderers = {
   /* New Trip sheet — pre-fills today's date as start, today+4 (5-day trip)
    * as end. The destination field gets focus so the user can start typing
    * right away. */
+  /* Budget editor — small sheet to set the trip's total budget.
+   * Converts between display currency (what user types) and JPY (stored). */
+  'budget-edit': function() {
+    renderBudgetSheet();
+  },
+
   'new-trip': function() {
     const dest = document.getElementById('maNtDest');
     const start = document.getElementById('maNtStart');
@@ -15945,6 +16156,133 @@ function setTripBase(slim) {
   try { tripStore.save(currentTrip); } catch (e) {}
   showToast(currentLang === 'zh' ? '✓ 已設定據點' : '✓ Base set');
   if (typeof teardownItinMap === 'function') teardownItinMap();
+  mobileNav.renderActive();
+}
+
+/* ─── Trip budget bar + edit sheet ─────────────────────────────
+ * The budget bar lives below the chips strip on the day-itinerary view
+ * and shows total trip spend vs total budget. Color shifts as spending
+ * approaches/exceeds the budget. Tapping anywhere on the bar (or on the
+ * "today" budget chip) opens the budget edit sheet.
+ */
+function renderTripBudgetBar() {
+  const bar = document.getElementById('maTripBudgetBar');
+  const labelEl = document.getElementById('maBudgetBarLabel');
+  const valueEl = document.getElementById('maBudgetBarValue');
+  const fillEl = document.getElementById('maBudgetBarFill');
+  if (!bar || !labelEl || !valueEl || !fillEl) return;
+
+  const tripBudget = Number(currentTrip?.budget || 0);   // JPY
+  // Sum all stop costs across all days
+  let totalCost = 0;
+  for (const d of itinerary) {
+    for (const s of (d.stops || [])) {
+      totalCost += Number(s.cost) || 0;
+    }
+  }
+
+  // Display the bar even when no budget is set, so the user has a tap
+  // affordance to set one. When unset, show a friendly call-to-action.
+  bar.style.display = '';
+
+  const symbol = (typeof CURRENCY_SYMBOLS !== 'undefined' && CURRENCY_SYMBOLS[displayCurrency]) || '¥';
+  const display = (typeof jpyTo === 'function') ? jpyTo(displayCurrency, totalCost) : totalCost;
+  const totalStr = `${symbol}${Math.round(display).toLocaleString()}`;
+
+  bar.classList.remove('is-good', 'is-warn', 'is-over');
+  if (tripBudget <= 0) {
+    // No budget set — neutral CTA state
+    labelEl.textContent = currentLang === 'zh' ? '設定預算' : 'Set a budget';
+    valueEl.textContent = currentLang === 'zh' ? `已花費 ${totalStr}` : `${totalStr} spent`;
+    fillEl.style.width = '0%';
+    return;
+  }
+  const budgetDisplay = (typeof jpyTo === 'function') ? jpyTo(displayCurrency, tripBudget) : tripBudget;
+  const budgetStr = `${symbol}${Math.round(budgetDisplay).toLocaleString()}`;
+  const pct = (totalCost / tripBudget) * 100;
+  const clampedPct = Math.min(100, pct);
+  fillEl.style.width = `${clampedPct}%`;
+
+  if (pct > 100) {
+    bar.classList.add('is-over');
+    labelEl.textContent = currentLang === 'zh' ? '已超出預算' : 'OVER BUDGET';
+    valueEl.textContent = `${totalStr} / ${budgetStr}`;
+  } else if (pct >= 90) {
+    bar.classList.add('is-warn');
+    labelEl.textContent = currentLang === 'zh' ? '接近上限' : 'NEARLY AT BUDGET';
+    valueEl.textContent = `${totalStr} / ${budgetStr}`;
+  } else {
+    bar.classList.add('is-good');
+    labelEl.textContent = currentLang === 'zh' ? '預算內' : 'WITHIN BUDGET';
+    valueEl.textContent = `${totalStr} / ${budgetStr}`;
+  }
+}
+
+function openBudgetSheet() {
+  if (!currentTrip) return;
+  mobileNav.push('budget-edit');
+}
+
+function renderBudgetSheet() {
+  if (!currentTrip) return;
+  const symbol = (typeof CURRENCY_SYMBOLS !== 'undefined' && CURRENCY_SYMBOLS[displayCurrency]) || '¥';
+  const symEl = document.getElementById('maBudgetSymbol');
+  const input = document.getElementById('maBudgetInput');
+  const sub = document.getElementById('maBudgetSheetSub');
+  const hint = document.getElementById('maBudgetHint');
+  if (symEl) symEl.textContent = symbol;
+  if (sub) {
+    const days = itinerary.length;
+    sub.textContent = currentLang === 'zh'
+      ? `${currentTrip.destination?.name || ''} · ${days} 天`
+      : `${currentTrip.destination?.name || ''} · ${days} day${days !== 1 ? 's' : ''}`;
+  }
+  if (input) {
+    const budgetJpy = Number(currentTrip.budget || 0);
+    const display = (typeof jpyTo === 'function') ? jpyTo(displayCurrency, budgetJpy) : budgetJpy;
+    input.value = budgetJpy > 0 ? Math.round(display) : '';
+    input.placeholder = currentLang === 'zh' ? '輸入總預算' : 'Enter total budget';
+    // Live hint as user types
+    const updateHint = () => {
+      if (!hint) return;
+      const v = parseFloat(input.value) || 0;
+      const days = Math.max(1, itinerary.length);
+      const per = v / days;
+      if (v > 0) {
+        hint.textContent = currentLang === 'zh'
+          ? `每日約 ${symbol}${Math.round(per).toLocaleString()}`
+          : `Approximately ${symbol}${Math.round(per).toLocaleString()} per day`;
+      } else {
+        hint.textContent = currentLang === 'zh'
+          ? '留空可移除預算'
+          : 'Leave blank to clear the budget';
+      }
+    };
+    updateHint();
+    input.oninput = updateHint;
+    setTimeout(() => { try { input.focus(); input.select(); } catch (e) {} }, 250);
+  }
+}
+
+function saveBudgetFromSheet() {
+  if (!currentTrip) return;
+  const input = document.getElementById('maBudgetInput');
+  if (!input) return;
+  const v = parseFloat(input.value);
+  // Convert from display currency back to JPY for storage
+  const valueDisplay = isNaN(v) ? 0 : v;
+  const budgetJpy = (typeof toJpy === 'function') ? toJpy(displayCurrency, valueDisplay) : valueDisplay;
+  currentTrip.budget = budgetJpy;
+  // Also update the global userBudget so the desktop view picks it up
+  if (typeof userBudget !== 'undefined') userBudget = budgetJpy;
+  try {
+    tripStore.save(currentTrip);
+    if (typeof saveUserBudget === 'function') saveUserBudget();
+  } catch (e) {}
+  showToast(budgetJpy > 0
+    ? (currentLang === 'zh' ? '✓ 預算已儲存' : '✓ Budget saved')
+    : (currentLang === 'zh' ? '✓ 預算已清除' : '✓ Budget cleared'));
+  mobileNav.pop();
   mobileNav.renderActive();
 }
 
@@ -19015,6 +19353,17 @@ function setupMobileShell() {
       saveRenameDay();
     }
   });
+
+  // Budget edit sheet — Save button + Enter key + the trip-budget bar
+  // on the day-itinerary view (tap anywhere on it opens this sheet).
+  document.getElementById('maBudgetSave')?.addEventListener('click', saveBudgetFromSheet);
+  document.getElementById('maBudgetInput')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      saveBudgetFromSheet();
+    }
+  });
+  document.getElementById('maTripBudgetBar')?.addEventListener('click', openBudgetSheet);
 
   // Add new trip — open the new-trip sheet
   document.getElementById('maAddNewTripBtn')?.addEventListener('click', openNewTripSheet);
