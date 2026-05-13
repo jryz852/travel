@@ -3518,6 +3518,69 @@
     margin-top: 2px;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
+  /* Editable day title — subtle pencil affordance + tappable look */
+  .ma-itin-top-title.is-editable {
+    cursor: pointer;
+    /* The pencil is a generated content marker so we don't have to wedge it
+       into the textContent setter and lose ellipsis behavior. */
+  }
+  .ma-itin-top-title.is-editable::after {
+    content: ' ✎';
+    font-size: 0.78em;
+    color: var(--gray-500, #8a877f);
+    margin-left: 4px;
+  }
+
+  /* Rename sheet — small modal with text input */
+  .ma-rename-sheet {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+  .ma-sheet-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px; color: var(--gray-500, #8a877f);
+    text-align: center;
+    margin-top: -4px; margin-bottom: 12px;
+  }
+  .ma-rename-input {
+    margin: 12px 14px 4px;
+    background: var(--gray-50, #fafaf9);
+    border: 1.5px solid rgba(0,0,0,0.08);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: var(--ink, #1a1816);
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .ma-rename-input:focus {
+    border-color: var(--ink, #1a1816); background: var(--paper, #fff);
+  }
+  .ma-rename-hint {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px; color: var(--gray-500, #8a877f);
+    padding: 4px 16px 16px;
+    text-align: center;
+  }
+  .ma-rename-actions {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 14px;
+  }
+  .ma-rename-save {
+    background: var(--ink, #1a1816); color: white;
+    border: none; border-radius: 14px;
+    padding: 14px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700; font-size: 15px;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .ma-rename-save:active { transform: scale(0.97); }
+  .ma-rename-save:disabled { opacity: 0.4; cursor: not-allowed; }
+  .ma-rename-sheet .ma-sheet-cancel {
+    margin-top: 0;
+  }
   .ma-itin-map {
     flex-shrink: 0;
     position: relative;
@@ -5013,6 +5076,44 @@
     padding: 4px 18px 14px;
     padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
     z-index: 5;
+    transition: transform 0.28s cubic-bezier(0.32, 0.72, 0.32, 1);
+  }
+  /* Collapsed (peek) state — slides down so only the grabber strip pokes up
+     from the bottom edge. Like a macOS Dock that hides off-screen. The
+     translate value matches "card height minus peek strip" so a thin
+     rounded handle stays visible at the bottom. */
+  .ma-map-bottom.is-collapsed {
+    transform: translateY(calc(100% - 28px));
+  }
+  /* Tappable grabber — bigger hit area so it's easy to grab on mobile.
+     Looks like the visual pill bar everyone expects on bottom sheets. */
+  .ma-map-bottom .ma-map-grabber-btn {
+    display: block;
+    width: 100%;
+    height: 28px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    position: relative;
+  }
+  .ma-map-bottom .ma-map-grabber-btn::after {
+    /* The visible pill that the user actually sees */
+    content: '';
+    position: absolute;
+    top: 10px; left: 50%;
+    transform: translateX(-50%);
+    width: 38px; height: 4px;
+    background: rgba(0,0,0,0.18);
+    border-radius: 2px;
+    transition: background 0.15s, width 0.15s;
+  }
+  .ma-map-bottom.is-collapsed .ma-map-grabber-btn::after {
+    background: rgba(0,0,0,0.35);
+    width: 48px;
+  }
+  .ma-map-bottom .ma-map-grabber-btn:active::after {
+    background: rgba(0,0,0,0.4);
   }
   .ma-map-bottom .ma-stop-grabber {
     margin: 8px auto 6px;
@@ -5557,6 +5658,25 @@
       </div>
     </section>
 
+    <!-- View: Rename day — small bottom sheet with text input + Save/Cancel.
+         Opens when the user taps the day title on the day-itinerary view. -->
+    <section class="ma-view ma-view-modal ma-sheet-view" data-view="rename-day" data-tab="trips">
+      <div class="ma-sheet-backdrop" data-action="back"></div>
+      <div class="ma-sheet ma-rename-sheet">
+        <div class="ma-stop-grabber"></div>
+        <div class="ma-sheet-title" id="maRenameDayTitle" data-i18n="ma-rename-day">Rename day</div>
+        <div class="ma-sheet-subtitle" id="maRenameDaySub">—</div>
+        <input type="text" class="ma-rename-input" id="maRenameDayInput"
+               autocomplete="off" autocorrect="off" spellcheck="false"
+               enterkeyhint="done" maxlength="60" />
+        <div class="ma-rename-hint" id="maRenameDayHint" data-i18n="ma-rename-hint">Leave blank to reset to default.</div>
+        <div class="ma-rename-actions">
+          <button class="ma-sheet-cancel" data-action="back" data-i18n="ma-cancel">Cancel</button>
+          <button class="ma-rename-save" id="maRenameDaySave" data-i18n="ma-save">Save</button>
+        </div>
+      </div>
+    </section>
+
     <!-- ─── TAB: EXPLORE (placeholder for now) ─── -->
     <section class="ma-view" data-view="explore-home" data-tab="explore">
       <div class="ma-scroll">
@@ -5648,7 +5768,8 @@
 
       <!-- Bottom card with active stop info + Navigate CTA -->
       <div class="ma-map-bottom" id="maMapBottom">
-        <div class="ma-stop-grabber"></div>
+        <button class="ma-stop-grabber ma-map-grabber-btn" id="maMapBottomGrab"
+                aria-label="Hide card" type="button"></button>
         <div class="ma-map-stop" id="maMapStopRow">
           <div class="ma-map-stop-thumb" id="maMapStopThumb"></div>
           <div class="ma-map-stop-info">
@@ -6403,6 +6524,9 @@ const i18n = {
     "sm-export-desc": "Download an .ics calendar file that imports into Google Calendar, Apple Calendar, Outlook, and most other calendar apps. One event per stop plus a trip-wide event covering the date range.",
     "sm-export-ics": "Download .ics file",
     "ma-cancel": "Cancel",
+    "ma-save": "Save",
+    "ma-rename-day": "Rename day",
+    "ma-rename-hint": "Leave blank to reset to default.",
     "ma-list": "List",
     "ma-navigate": "Navigate →",
     "ma-set-prefs": "Preferences",
@@ -6647,6 +6771,9 @@ const i18n = {
     "sm-export-desc": "下載 .ics 日曆檔，可匯入 Google 日曆、Apple 行事曆、Outlook 等多數日曆應用。每個景點一個事件，加上涵蓋日期範圍的整體行程事件。",
     "sm-export-ics": "下載 .ics 檔案",
     "ma-cancel": "取消",
+    "ma-save": "儲存",
+    "ma-rename-day": "重新命名",
+    "ma-rename-hint": "留空即可重設為預設值。",
     "ma-list": "列表",
     "ma-navigate": "前往導航 →",
     "ma-set-prefs": "偏好設定",
@@ -7005,6 +7132,19 @@ const placeStore = {
 function isoToday() {
   const d = new Date();
   return d.toISOString().slice(0, 10);
+}
+
+/* Single source of truth for a day's display name.
+ *   • If the user has set a custom name (via the edit sheet on the
+ *     day-itinerary view), use that
+ *   • Otherwise default to "Day N" in the active language
+ * Legacy `title` field on seeded data is ignored for display — the
+ * user explicitly asked for clean "Day N" defaults across the board. */
+function getDayName(day, idx) {
+  if (day?.customName && typeof day.customName === 'string' && day.customName.trim()) {
+    return day.customName.trim();
+  }
+  return (currentLang === 'zh') ? `第 ${idx + 1} 天` : `Day ${idx + 1}`;
 }
 function isoAddDays(iso, n) {
   const d = new Date(iso + 'T00:00:00');
@@ -12592,12 +12732,12 @@ const mobileViewRenderers = {
         const daysEN = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
         const eyebrow = isNaN(date.getTime()) ? '' :
           `${daysEN[date.getDay()]}, ${monthsEN[date.getMonth()]} ${date.getDate()}`;
-        const title = d.title?.[currentLang] || d.title?.en || (currentLang === 'zh' ? `第 ${idx+1} 天` : `Day ${idx+1}`);
+        const title = getDayName(d, idx);
         item.innerHTML = `
           <div class="mdi-num">${idx + 1}</div>
           <div>
             <div class="mdi-eyebrow">${escapeHTML(eyebrow)}</div>
-            <div class="mdi-title">${escapeHTML(title || (currentLang === 'zh' ? '自由安排' : 'Open day'))}</div>
+            <div class="mdi-title">${escapeHTML(title)}</div>
           </div>
           <div class="mdi-side">
             <span class="mdi-weather" data-iso="${d.isoDate || ''}"></span>
@@ -12643,12 +12783,19 @@ const mobileViewRenderers = {
     const dayLabel = isToday2
       ? (currentLang === 'zh' ? '今日' : 'TODAY')
       : (currentLang === 'zh' ? `第 ${idx+1} 天` : `DAY ${idx+1}`);
-    const dayLoc = d.title?.zh || d.title?.[currentLang] || d.title?.en || '';
     const topEyebrow = document.getElementById('maItinTopEyebrow');
-    if (topEyebrow) topEyebrow.textContent = dayLoc ? `${dayLabel} · ${dayLoc}` : dayLabel;
+    // Eyebrow shows just the day label + date context — the title below
+    // is now the user-editable name (defaults to "Day N").
+    if (topEyebrow) topEyebrow.textContent = dayLabel;
     const topTitle = document.getElementById('maItinTopTitle');
-    if (topTitle) topTitle.textContent = d.title?.en ||
-      (currentLang === 'zh' ? `第 ${idx+1} 天` : `Day ${idx+1}`);
+    if (topTitle) {
+      topTitle.textContent = getDayName(d, idx);
+      // Make the title tappable to open the rename sheet. We attach via
+      // direct onclick (not addEventListener) so re-renders don't accumulate
+      // handlers. The visual affordance is a small ✎ icon added via CSS.
+      topTitle.classList.add('is-editable');
+      topTitle.onclick = () => openDayRenameSheet(idx);
+    }
 
     // ─── Inline day map (fixed at top, doesn't scroll) ───
     // Defer rendering until view transition completes so the map element has
@@ -12663,8 +12810,7 @@ const mobileViewRenderers = {
       const label = isToday
         ? (currentLang === 'zh' ? '今日' : 'TODAY')
         : (currentLang === 'zh' ? `第 ${idx+1} 天` : `DAY ${idx+1}`);
-      const loc = d.title?.zh || d.title?.[currentLang] || d.title?.en || '';
-      eyebrow.textContent = loc ? `${label} · ${loc}` : label;
+      eyebrow.textContent = `${label} · ${getDayName(d, idx)}`;
     }
 
     // Numerals: "03" of 07
@@ -12684,10 +12830,10 @@ const mobileViewRenderers = {
         `${daysEN[date.getDay()]}, ${monthsEN[date.getMonth()]} ${date.getDate()}`;
       subEl.textContent = [titleZh, dateStr].filter(Boolean).join(' · ');
     }
-    // Main title: "Dazaifu & Old Town" or "Day N"
+    // Main title: legacy hidden element, kept for code that may still read it
     const titleEl = document.getElementById('maDayTitle');
     if (titleEl) {
-      titleEl.textContent = d.title?.en || (currentLang === 'zh' ? `第 ${idx+1} 天` : `Day ${idx+1}`);
+      titleEl.textContent = getDayName(d, idx);
     }
 
     // Chips: stops / planned / cost / travel
@@ -12948,6 +13094,35 @@ const mobileViewRenderers = {
     }
   },
 
+  /* Rename day sheet — small bottom sheet with a text input. The day index
+   * to rename is stashed on _renameDayIdx by openDayRenameSheet(). */
+  'rename-day': function() {
+    if (!currentTrip) return;
+    const idx = _renameDayIdx;
+    const d = itinerary[idx];
+    if (!d) return;
+    const sub = document.getElementById('maRenameDaySub');
+    const input = document.getElementById('maRenameDayInput');
+    if (sub) {
+      const dateStr = (() => {
+        const date = new Date((d.isoDate || '') + 'T00:00:00');
+        if (isNaN(date.getTime())) return '';
+        const daysEN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const monthsEN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return `${daysEN[date.getDay()]}, ${monthsEN[date.getMonth()]} ${date.getDate()}`;
+      })();
+      sub.textContent = currentLang === 'zh'
+        ? `第 ${idx + 1} 天${dateStr ? ' · ' + dateStr : ''}`
+        : `Day ${idx + 1}${dateStr ? ' · ' + dateStr : ''}`;
+    }
+    if (input) {
+      input.value = d.customName || '';
+      input.placeholder = currentLang === 'zh' ? `例如：太宰府之旅` : 'e.g. Old Town Exploration';
+      // Focus after the transition so the keyboard pops up
+      setTimeout(() => { try { input.focus(); input.select(); } catch (e) {} }, 250);
+    }
+  },
+
   /* Profile / Settings — consolidates language, currency, API key,
    * import shortcut, view-switching, and data-clearing. */
   'profile-home': function() {
@@ -13115,6 +13290,9 @@ const mobileViewRenderers = {
     if (!sameDay) {
       mobileMap.selectedIdx = 0;
     }
+    // Fresh visit to Map — ensure the bottom card starts expanded so the user
+    // sees the active stop info; they can collapse it manually if they want.
+    if (!sameDay) setMapBottomCollapsed(false);
     renderMobileMapChrome();
     if (!sameDay) {
       // Defer the canvas render until after the view transition is well underway,
@@ -13196,8 +13374,7 @@ function renderMobileMapChrome() {
       : `DAY ${mobileMap.day + 1}${isToday ? ' · TODAY' : ''}`;
   }
   if (titleEl) {
-    titleEl.textContent = d.title?.en || d.title?.[currentLang] ||
-      (currentLang === 'zh' ? `第 ${mobileMap.day + 1} 天` : `Day ${mobileMap.day + 1}`);
+    titleEl.textContent = getDayName(d, mobileMap.day);
   }
 
   // Bottom stop card
@@ -13285,6 +13462,8 @@ function enterMapPreviewMode(slim) {
   // Clear any previous preview
   clearMapPreviewVisuals();
   mobileMap.previewPlace = slim;
+  // Preview is high-attention — always show the card so user can act
+  setMapBottomCollapsed(false);
 
   // Find the anchor — last stop of current day, or hotel as fallback
   const d = itinerary[mobileMap.day];
@@ -14120,8 +14299,7 @@ function openMapDayDropdown() {
     const eyebrow = isNaN(date.getTime()) ? '' :
       `${daysEN[date.getDay()]}, ${monthsEN[date.getMonth()]} ${date.getDate()}` +
       (isToday ? ' · ' + (currentLang === 'zh' ? '今日' : 'TODAY') : '');
-    const title = d.title?.en || d.title?.[currentLang] ||
-      (currentLang === 'zh' ? `第 ${idx+1} 天` : `Day ${idx+1}`);
+    const title = getDayName(d, idx);
     const stopCount = d.stops?.length || 0;
     row.innerHTML = `
       <div class="mddr-num">${idx + 1}</div>
@@ -14264,6 +14442,76 @@ async function runMapSearch(query) {
   });
 }
 
+/* ─── Map bottom card auto-hide ────────────────────────────────
+ * The bottom card on the Map tab can collapse to a thin peek strip,
+ * giving the map full attention. Inspired by the macOS Dock auto-hide
+ * setting.
+ *
+ *   • Tap the grabber pill (top of card)   → toggles collapsed/expanded
+ *   • Tap a pin on the map                 → expands (with that pin's info)
+ *   • Tap the map background (no pin)      → collapses
+ *   • Entering preview mode (search)       → expands (with candidate info)
+ *
+ * Collapsed state is just a class on #maMapBottom — CSS handles the
+ * slide animation via transform.
+ */
+function isMapBottomCollapsed() {
+  const el = document.getElementById('maMapBottom');
+  return !!(el && el.classList.contains('is-collapsed'));
+}
+function setMapBottomCollapsed(collapsed) {
+  const el = document.getElementById('maMapBottom');
+  if (!el) return;
+  el.classList.toggle('is-collapsed', !!collapsed);
+  const grab = document.getElementById('maMapBottomGrab');
+  if (grab) {
+    grab.setAttribute('aria-label', collapsed ? 'Show card' : 'Hide card');
+  }
+}
+function toggleMapBottomCard() {
+  setMapBottomCollapsed(!isMapBottomCollapsed());
+}
+
+/* ─── Rename Day sheet ─── */
+let _renameDayIdx = 0;  // day index being renamed; set by openDayRenameSheet
+
+/** Open the rename sheet for a given day. */
+function openDayRenameSheet(idx) {
+  if (!currentTrip || !itinerary[idx]) return;
+  _renameDayIdx = idx;
+  mobileNav.push('rename-day');
+}
+
+/** Commit the rename: read input, store on day.customName (or clear), save,
+ *  pop the sheet, refresh the previous view so the new name shows. */
+function saveRenameDay() {
+  const input = document.getElementById('maRenameDayInput');
+  if (!input) return;
+  const v = input.value.trim();
+  const d = itinerary[_renameDayIdx];
+  if (!d) return;
+  // Empty input → reset to default ("Day N"). Non-empty → set custom name.
+  if (v) {
+    d.customName = v;
+  } else {
+    delete d.customName;
+  }
+  // Persist via tripStore
+  try {
+    if (typeof tripStore !== 'undefined' && currentTrip) {
+      tripStore.save(currentTrip);
+    }
+  } catch (e) {
+    console.warn('Failed to save rename', e);
+  }
+  // Dismiss + refresh the underlying view (day-itinerary) so the name shows
+  mobileNav.pop();
+  mobileNav.renderActive();
+  showToast(v
+    ? (currentLang === 'zh' ? '✓ 已重新命名' : '✓ Day renamed')
+    : (currentLang === 'zh' ? '✓ 已重設為預設值' : '✓ Reset to default'));
+}
+
 /* ─── Pick-a-Day sheet ─── */
 let _pickDayPlace = null;  // place object pending add
 
@@ -14295,8 +14543,7 @@ function openPickDaySheet(place) {
       const monthsEN = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
       const eyebrow = isNaN(date.getTime()) ? '' :
         `${daysEN[date.getDay()]}, ${monthsEN[date.getMonth()]} ${date.getDate()}`;
-      const title = d.title?.en || d.title?.[currentLang] ||
-        (currentLang === 'zh' ? `第 ${idx+1} 天` : `Day ${idx+1}`);
+      const title = getDayName(d, idx);
       const stopCount = d.stops?.length || 0;
       row.innerHTML = `
         <div class="pdr-num">${idx + 1}</div>
@@ -14408,6 +14655,14 @@ function renderMobileMapGoogle(canvas, points) {
   mobileMap.map = map;
   mobileMap.markers = [];
 
+  // Tap on empty map → collapse the bottom card (auto-hide behavior).
+  // Don't collapse while a preview is active — the preview card is the
+  // primary content the user is reviewing.
+  map.addListener('click', () => {
+    if (mobileMap.previewPlace) return;
+    if (!isMapBottomCollapsed()) setMapBottomCollapsed(true);
+  });
+
   // Build custom marker icons as data URIs. We use SVG so they scale crisply.
   const pinIcon = (label, opts) => {
     const fill = opts.fill || '#ffffff';
@@ -14478,6 +14733,8 @@ function renderMobileMapGoogle(canvas, points) {
         }
         if (prevMarker) prevMarker.setZIndex(10);
         updateMobileMapStopCard();
+        // Tapping a pin always summons the card back into view
+        setMapBottomCollapsed(false);
       });
     }
     mobileMap.markers.push(marker);
@@ -14512,6 +14769,12 @@ function renderMobileMapLeaflet(canvas, points) {
   mobileMap.type = 'leaflet';
   mobileMap.map = map;
   mobileMap.markers = [];
+
+  // Tap on empty map → collapse the bottom card. Skipped while preview is active.
+  map.on('click', () => {
+    if (mobileMap.previewPlace) return;
+    if (!isMapBottomCollapsed()) setMapBottomCollapsed(true);
+  });
 
   // Polyline
   const latlngs = points.map(p => [p.s.lat, p.s.lng]);
@@ -14558,6 +14821,7 @@ function renderMobileMapLeaflet(canvas, points) {
         }
         if (prevMarker) prevMarker.setZIndexOffset(0);
         updateMobileMapStopCard();
+        setMapBottomCollapsed(false);
       });
     }
     mobileMap.markers.push(marker);
@@ -16334,6 +16598,25 @@ function setupMobileShell() {
   });
   // Test button → run API key diagnostic
   document.getElementById('maApiKeyTest')?.addEventListener('click', testApiKey);
+
+  // Rename Day sheet — Save button + Enter key in input
+  document.getElementById('maRenameDaySave')?.addEventListener('click', saveRenameDay);
+  document.getElementById('maRenameDayInput')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      saveRenameDay();
+    }
+  });
+
+  // ─── Map bottom card auto-hide ────────────────────────────────
+  // Tap the grabber pill to collapse the card to a peek strip; tap again
+  // to expand. Tapping the map background also collapses the card so the
+  // map gets full attention (like a Dock that hides when not in use).
+  // Tapping a real pin OR entering preview mode summons it back up.
+  document.getElementById('maMapBottomGrab')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleMapBottomCard();
+  });
 
   // Import shortcut → reuse existing import modal
   document.getElementById('maOpenImport')?.addEventListener('click', () => {
