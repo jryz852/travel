@@ -6624,10 +6624,9 @@
 
         <div class="ma-budget-input-row">
           <span class="ma-budget-input-symbol" id="maBudgetSymbol">¥</span>
-          <input type="number" class="ma-budget-input" id="maBudgetInput"
-                 inputmode="numeric" pattern="[0-9]*"
-                 min="0" max="99999999" step="100"
-                 autocomplete="off" />
+          <input type="text" class="ma-budget-input" id="maBudgetInput"
+                 inputmode="decimal" pattern="[0-9]*"
+                 autocomplete="off" autocorrect="off" spellcheck="false" />
         </div>
         <div class="ma-budget-hint" id="maBudgetHint">—</div>
 
@@ -14026,8 +14025,9 @@ const mobileViewRenderers = {
         </button>
         ${km > 0 ? `<div class="ma-chip"><strong>${km.toFixed(km < 10 ? 1 : 0)} km</strong>${currentLang === 'zh' ? '路程' : 'travel'}</div>` : ''}
       `;
-      // Wire the budget chip to open the edit sheet
-      document.getElementById('maDayBudgetChip')?.addEventListener('click', openBudgetSheet);
+      // (The budget chip click is handled via event delegation set up
+      // in setupMobileShell on the chips-strip container, so it survives
+      // re-renders without needing to be re-attached here.)
 
       // Trip-wide budget bar — sits below the chips strip. Visualizes
       // total trip spend vs total budget so the user can see at a glance
@@ -19364,6 +19364,17 @@ function setupMobileShell() {
     }
   });
   document.getElementById('maTripBudgetBar')?.addEventListener('click', openBudgetSheet);
+  // Event delegation: capture clicks on the day-itinerary chips strip and
+  // route any clicks within the budget chip to openBudgetSheet. We use
+  // delegation because the chip is rebuilt via innerHTML on every render,
+  // and re-attaching listeners after each rebuild is fragile.
+  document.addEventListener('click', (e) => {
+    const chip = e.target.closest && e.target.closest('#maDayBudgetChip');
+    if (chip) {
+      e.stopPropagation();
+      openBudgetSheet();
+    }
+  }, true);  // capture phase, so we run before any scroll-container interception
 
   // Add new trip — open the new-trip sheet
   document.getElementById('maAddNewTripBtn')?.addEventListener('click', openNewTripSheet);
