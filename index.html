@@ -3404,6 +3404,44 @@
   /* New trip sheet — labels + inputs */
   .ma-new-trip-sheet {
     padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    position: relative;
+  }
+  /* Wider invisible tap target around the grabber pill so users can grab
+     anywhere along the top strip to drag-dismiss. Also gets touchmove/up
+     event listeners for swipe-down dismiss. */
+  .ma-sheet-grab {
+    width: 100%;
+    height: 28px;
+    cursor: grab;
+    display: flex; align-items: center; justify-content: center;
+    touch-action: none;     /* let our handlers drive vertical motion */
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+  .ma-sheet-grab:active { cursor: grabbing; }
+  /* Inline back button at top-left of sheet — explicit affordance for
+     users who'd rather tap a button than swipe or use the backdrop. */
+  .ma-sheet-back-btn {
+    position: absolute;
+    top: 28px; left: 12px;
+    width: 36px; height: 36px;
+    background: var(--gray-100, #f0eee9);
+    border: none; border-radius: 50%;
+    font-size: 18px; line-height: 1;
+    color: var(--ink, #1a1816);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, transform 0.1s;
+    z-index: 5;
+  }
+  .ma-sheet-back-btn:active {
+    background: var(--gray-200, #d8d4cc);
+    transform: scale(0.92);
+  }
+  /* When the sheet has a back button, the title needs left padding so they don't overlap */
+  .ma-new-trip-sheet .ma-sheet-title {
+    padding: 6px 60px 12px 60px;
   }
   .ma-nt-label {
     display: block;
@@ -4102,6 +4140,122 @@
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
     padding-bottom: 20px;
+  }
+
+  /* Inline search bar between chips strip and stops list. Stays fixed
+     (doesn't scroll with the stops). When user types, results panel
+     overlays the stops below. */
+  .ma-itin-search {
+    position: relative;
+    flex-shrink: 0;
+    padding: 0 18px 10px;
+    background: var(--rice, #f5f1ea);
+    z-index: 2;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+  .ma-itin-search-bar {
+    display: flex; align-items: center;
+    background: var(--paper, #fff);
+    border-radius: 12px;
+    padding: 0 8px 0 12px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.06);
+  }
+  .ma-itin-search-icon {
+    font-size: 13px;
+    color: var(--gray-500, #8a877f);
+    margin-right: 8px;
+  }
+  .ma-itin-search-input {
+    flex: 1; min-width: 0;
+    background: transparent;
+    border: none;
+    padding: 10px 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--ink, #1a1816);
+    outline: none;
+  }
+  .ma-itin-search-input::placeholder {
+    color: var(--gray-500, #8a877f);
+  }
+  .ma-itin-search-clear {
+    background: transparent;
+    border: none;
+    width: 28px; height: 28px;
+    font-size: 13px;
+    color: var(--gray-500, #8a877f);
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ma-itin-search-clear:active { background: var(--gray-100, #f0eee9); }
+
+  .ma-itin-search-results {
+    position: absolute;
+    top: calc(100% - 4px); left: 14px; right: 14px;
+    background: var(--paper, #fff);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    max-height: 50vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    z-index: 12;
+    padding: 6px;
+  }
+  /* Single result row — photo, name, meta, + button */
+  .ma-itin-search-results .ma-isr-row {
+    display: grid;
+    grid-template-columns: 44px 1fr 36px;
+    gap: 10px; align-items: center;
+    padding: 8px 8px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .ma-itin-search-results .ma-isr-row:active,
+  .ma-itin-search-results .ma-isr-row:hover {
+    background: var(--gray-50, #fafaf9);
+  }
+  .ma-itin-search-results .ma-isr-thumb {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    background-size: cover; background-position: center;
+    background-color: var(--gray-100, #f0eee9);
+  }
+  .ma-itin-search-results .ma-isr-info {
+    min-width: 0;
+  }
+  .ma-itin-search-results .ma-isr-name {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700; font-size: 13px;
+    color: var(--ink, #1a1816);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .ma-itin-search-results .ma-isr-meta {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--gray-500, #8a877f);
+    margin-top: 2px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .ma-itin-search-results .ma-isr-meta .mpc-star { color: #d97706; font-weight: 700; }
+  .ma-itin-search-results .ma-isr-add {
+    background: var(--ink, #1a1816);
+    color: white;
+    border: none; border-radius: 50%;
+    width: 32px; height: 32px;
+    font-size: 16px; font-weight: 300;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ma-itin-search-results .ma-isr-add:active { transform: scale(0.9); }
+  .ma-itin-search-results .ma-isr-empty,
+  .ma-itin-search-results .ma-isr-loading {
+    padding: 16px;
+    text-align: center;
+    color: var(--gray-500, #8a877f);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
   }
 
   /* ─── Day itinerary (mockup 3 — legacy day-head, no longer used) ─── */
@@ -6038,6 +6192,26 @@
         </div>
       </div>
 
+      <!-- Inline search bar — mirrors the Map tab so users can find and
+           add stops without leaving this view. Results appear as a
+           floating panel below the bar. Tap a result to add it to this
+           day directly (no day picker needed). -->
+      <div class="ma-itin-search">
+        <div class="ma-itin-search-bar">
+          <span class="ma-itin-search-icon">🔍</span>
+          <input type="search" id="maItinSearchInput"
+                 class="ma-itin-search-input"
+                 placeholder="Search places to add to this day"
+                 autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+          <button class="ma-itin-search-clear" id="maItinSearchClear"
+                  aria-label="Clear search" style="display:none">✕</button>
+        </div>
+        <div class="ma-itin-search-results" id="maItinSearchResults"
+             style="display:none">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+
       <!-- The ONLY thing that scrolls on this view: the stops list. -->
       <div class="ma-itin-scroll">
         <div class="ma-stops" id="maDayStops">
@@ -6183,8 +6357,15 @@
          immediately and becomes the active trip. -->
     <section class="ma-view ma-view-modal ma-sheet-view" data-view="new-trip" data-tab="trips">
       <div class="ma-sheet-backdrop" data-action="back"></div>
-      <div class="ma-sheet ma-new-trip-sheet">
-        <div class="ma-stop-grabber"></div>
+      <div class="ma-sheet ma-new-trip-sheet" id="maNewTripSheet">
+        <!-- Tappable grabber doubles as a back affordance — taps anywhere on
+             this strip dismiss the sheet, and swiping down on it also dismisses. -->
+        <div class="ma-sheet-grab" id="maNewTripGrab" role="button" aria-label="Back" tabindex="0">
+          <div class="ma-stop-grabber"></div>
+        </div>
+        <!-- Inline back button — small ← in the top-left for users who want
+             an explicit affordance. Mirrors how the day-itinerary view feels. -->
+        <button class="ma-sheet-back-btn" data-action="back" aria-label="Back">←</button>
         <div class="ma-sheet-title" data-i18n="ma-nt-title">New trip</div>
 
         <label class="ma-nt-label" data-i18n="ma-nt-dest">Destination</label>
@@ -11161,7 +11342,10 @@ function renderTripsList() {
 }
 
 function switchTrip(id) {
-  if (!id || id === currentTrip.id) return;
+  if (!id) return;
+  // currentTrip can be null for a fresh user creating their first trip,
+  // so guard before reading .id
+  if (currentTrip && id === currentTrip.id) return;
   const trip = tripStore.load(id);
   if (!trip) return;
   // Persist the active id and swap the live state
@@ -13447,6 +13631,22 @@ const mobileViewRenderers = {
     // its final dimensions when Google/Leaflet measures it.
     setTimeout(() => renderItinDayMap(idx), 50);
 
+    // Reset and re-localize the inline search bar
+    const itinSearchInput = document.getElementById('maItinSearchInput');
+    const itinSearchClear = document.getElementById('maItinSearchClear');
+    const itinSearchResults = document.getElementById('maItinSearchResults');
+    if (itinSearchInput) {
+      itinSearchInput.value = '';
+      itinSearchInput.placeholder = currentLang === 'zh'
+        ? '搜尋景點以加入此日'
+        : 'Search places to add to this day';
+    }
+    if (itinSearchClear) itinSearchClear.style.display = 'none';
+    if (itinSearchResults) {
+      itinSearchResults.style.display = 'none';
+      itinSearchResults.innerHTML = '';
+    }
+
     // Eyebrow: "TODAY · LOCATION" or "DAY N · LOCATION"
     const todayIso = isoToday();
     const eyebrow = document.getElementById('maDayEyebrow');
@@ -13834,6 +14034,12 @@ const mobileViewRenderers = {
     // Wire change handlers so the summary updates live
     if (start) start.onchange = updateNewTripSummary;
     if (end) end.onchange = updateNewTripSummary;
+    // Wire swipe-down dismiss on the grabber strip. Drag down past ~80px
+    // and the sheet pops back to Trips home. Mirrors the iOS sheet pattern.
+    wireSheetSwipeDismiss(
+      document.getElementById('maNewTripGrab'),
+      document.getElementById('maNewTripSheet')
+    );
     setTimeout(() => { try { dest?.focus(); } catch(e) {} }, 250);
   },
 
@@ -15244,6 +15450,221 @@ function toggleMapBottomCard() {
   setMapBottomCollapsed(!isMapBottomCollapsed());
 }
 
+/* ─── Inline search on day-itinerary view ───────────────────────
+ * Runs a Google Places textSearch biased to the current day's
+ * center (last stop's location, or hotel, or trip destination).
+ * Renders results as compact rows with thumb + name + meta + add button.
+ * Tapping the row body or + adds the place directly to the current day's
+ * stops — no day picker needed since we already know the day.
+ */
+async function runItinDaySearch(query) {
+  const resultsEl = document.getElementById('maItinSearchResults');
+  if (!resultsEl) return;
+  resultsEl.style.display = '';
+  resultsEl.innerHTML = `<div class="ma-isr-loading">${escapeHTML(currentLang === 'zh' ? '搜尋中…' : 'Searching…')}</div>`;
+
+  if (!googleApiKey) {
+    resultsEl.innerHTML = `<div class="ma-isr-empty">${escapeHTML(currentLang === 'zh' ? '請在「個人」中設定 Google API 金鑰' : 'Set your Google API key in Profile to search')}</div>`;
+    return;
+  }
+  try { await loadGoogleMapsJsApi(); }
+  catch (e) {
+    resultsEl.innerHTML = `<div class="ma-isr-empty">${escapeHTML(currentLang === 'zh' ? 'Google API 載入失敗' : 'Couldn\'t reach Google Maps')}</div>`;
+    return;
+  }
+
+  // Bias center: current day's last stop > hotel > trip destination
+  const d = itinerary[currentDay];
+  const stops = (d?.stops || []).filter(s => s.lat && s.lng);
+  const hotel = currentTrip?.hotels?.[0];
+  let center = null;
+  if (stops.length > 0) {
+    center = { lat: stops[stops.length - 1].lat, lng: stops[stops.length - 1].lng };
+  } else if (hotel?.lat) {
+    center = { lat: hotel.lat, lng: hotel.lng };
+  } else if (currentTrip?.destination?.lat) {
+    center = { lat: currentTrip.destination.lat, lng: currentTrip.destination.lng };
+  }
+
+  const req = { query, language: currentLang === 'zh' ? 'zh-TW' : 'en' };
+  if (center) {
+    req.location = new google.maps.LatLng(center.lat, center.lng);
+    req.radius = 5000;
+  }
+
+  const svc = new google.maps.places.PlacesService(document.createElement('div'));
+  let places;
+  try {
+    places = await placesCallWithTimeout(
+      (r, cb) => svc.textSearch(r, cb),
+      req,
+      { timeoutMs: 9000 }
+    );
+  } catch (e) {
+    resultsEl.innerHTML = `<div class="ma-isr-empty">${escapeHTML(currentLang === 'zh' ? '搜尋逾時' : 'Search timed out')}</div>`;
+    return;
+  }
+  if (!places || places.length === 0) {
+    resultsEl.innerHTML = `<div class="ma-isr-empty">${escapeHTML(currentLang === 'zh' ? '找不到結果' : 'No results')}</div>`;
+    return;
+  }
+  // Sort by rating × log(reviews)
+  const sorted = places.slice().filter(p => p.geometry?.location).sort((a, b) => {
+    const sa = (a.rating || 0) * Math.log(1 + (a.user_ratings_total || 0));
+    const sb = (b.rating || 0) * Math.log(1 + (b.user_ratings_total || 0));
+    return sb - sa;
+  });
+  const top = sorted.slice(0, 10);
+  resultsEl.innerHTML = '';
+  top.forEach(p => {
+    const slim = {
+      place_id: p.place_id,
+      name: p.name,
+      rating: p.rating,
+      user_ratings_total: p.user_ratings_total,
+      price_level: p.price_level,
+      vicinity: p.vicinity || p.formatted_address,
+      types: p.types,
+      photo: p.photos?.[0]?.getUrl?.({ maxWidth: 200, maxHeight: 200 }) || null,
+      lat: p.geometry.location.lat(),
+      lng: p.geometry.location.lng()
+    };
+    const row = document.createElement('div');
+    row.className = 'ma-isr-row';
+    row.innerHTML = `
+      <div class="ma-isr-thumb"></div>
+      <div class="ma-isr-info">
+        <div class="ma-isr-name">${escapeHTML(slim.name || '')}</div>
+        <div class="ma-isr-meta">
+          ${slim.rating ? `<span class="mpc-star">★ ${slim.rating.toFixed(1)}</span>` : ''}
+          ${slim.user_ratings_total ? ` (${formatCount(slim.user_ratings_total)})` : ''}
+          ${slim.vicinity ? ` · ${escapeHTML(slim.vicinity.split(',')[0])}` : ''}
+        </div>
+      </div>
+      <button class="ma-isr-add" aria-label="Add">+</button>
+    `;
+    const thumb = row.querySelector('.ma-isr-thumb');
+    if (slim.photo) thumb.style.backgroundImage = `url('${slim.photo}')`;
+    else applyGradientFallback(thumb, slim.name || slim.place_id);
+
+    const addToCurrentDay = () => {
+      addPlaceToCurrentDay(slim);
+      // Clear the search and dismiss results
+      const input = document.getElementById('maItinSearchInput');
+      const clearBtn = document.getElementById('maItinSearchClear');
+      if (input) input.value = '';
+      if (clearBtn) clearBtn.style.display = 'none';
+      resultsEl.style.display = 'none';
+      resultsEl.innerHTML = '';
+    };
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('.ma-isr-add')) return;
+      addToCurrentDay();
+    });
+    row.querySelector('.ma-isr-add').addEventListener('click', (e) => {
+      e.stopPropagation();
+      addToCurrentDay();
+    });
+    resultsEl.appendChild(row);
+  });
+}
+
+/** Add a search-result place to the currently-viewed day's stops.
+ *  Reuses the same data shape and persistence as Pick-a-Day's flow. */
+function addPlaceToCurrentDay(slim) {
+  if (!currentTrip || !itinerary[currentDay]) return;
+  const day = itinerary[currentDay];
+  if (!day.stops) day.stops = [];
+  // Compose a minimal stop matching the existing shape
+  const newStop = {
+    place_id: slim.place_id,
+    name: { en: slim.name, zh: slim.name },
+    q: slim.name,
+    lat: slim.lat,
+    lng: slim.lng,
+    cat: { en: '', zh: '' },
+    time: { en: '', zh: '' },
+    cost: 0,
+    rating: slim.rating || null,
+    address: slim.vicinity || '',
+    _google: { photos: slim.photo ? [slim.photo] : [] }
+  };
+  day.stops.push(newStop);
+  try { tripStore.save(currentTrip); } catch (e) {}
+  const dayLabel = getDayName(day, currentDay);
+  showToast(`✓ ${currentLang === 'zh' ? '已加入' : 'Added to'} ${dayLabel}`);
+  // Re-render so the new stop appears in the list, the map pin renders,
+  // and the chips update.
+  if (typeof teardownItinMap === 'function') teardownItinMap();
+  mobileNav.renderActive();
+}
+
+
+/* ─── Sheet swipe-down dismiss ──────────────────────────────────
+ * Wires a grab handle so the user can drag-down a bottom sheet to
+ * dismiss it. Mirrors the iOS modal pattern. Threshold is ~80px:
+ * past that and we call mobileNav.pop().
+ *
+ * The implementation is intentionally simple — no spring physics,
+ * no momentum. Touchstart records baseline; touchmove translates the
+ * sheet downward (rubber-band slightly if dragged up); touchend
+ * either snaps back to 0 or pops the sheet. Listeners are re-wired
+ * each time the sheet renders so closures stay fresh.
+ */
+function wireSheetSwipeDismiss(grabEl, sheetEl) {
+  if (!grabEl || !sheetEl) return;
+  let startY = 0;
+  let dy = 0;
+  let dragging = false;
+  // Replace any prior handlers (renderer is called each open)
+  grabEl.ontouchstart = null;
+  grabEl.ontouchmove = null;
+  grabEl.ontouchend = null;
+  const onStart = (e) => {
+    const t = e.touches ? e.touches[0] : e;
+    startY = t.clientY;
+    dy = 0;
+    dragging = true;
+    sheetEl.style.transition = 'none';
+  };
+  const onMove = (e) => {
+    if (!dragging) return;
+    const t = e.touches ? e.touches[0] : e;
+    dy = t.clientY - startY;
+    // Rubber-band upward drag, follow finger downward
+    const translate = dy < 0 ? dy * 0.25 : dy;
+    sheetEl.style.transform = `translateY(${translate}px)`;
+    if (e.cancelable) e.preventDefault();
+  };
+  const onEnd = () => {
+    if (!dragging) return;
+    dragging = false;
+    sheetEl.style.transition = 'transform 0.22s cubic-bezier(0.32, 0.72, 0.32, 1)';
+    if (dy > 80) {
+      // Animate offscreen then pop
+      sheetEl.style.transform = 'translateY(100%)';
+      setTimeout(() => {
+        sheetEl.style.transform = '';
+        sheetEl.style.transition = '';
+        mobileNav.pop();
+      }, 220);
+    } else {
+      sheetEl.style.transform = '';
+      // Clear the transition after it completes so the sheet can be
+      // dragged again without lingering animation
+      setTimeout(() => { sheetEl.style.transition = ''; }, 240);
+    }
+  };
+  grabEl.addEventListener('touchstart', onStart, { passive: true });
+  grabEl.addEventListener('touchmove', onMove, { passive: false });
+  grabEl.addEventListener('touchend', onEnd);
+  grabEl.addEventListener('touchcancel', onEnd);
+  // Mouse fallback for desktop testing
+  grabEl.addEventListener('mousedown', (e) => { onStart(e); });
+  document.addEventListener('mousemove', (e) => { if (dragging) onMove(e); });
+  document.addEventListener('mouseup', onEnd);
+}
+
 /* ─── New Trip flow ───────────────────────────────────────────
  * Tap "Add new trip" on Trips home → opens the new-trip sheet.
  * The user enters destination, start date, and end date. We compute
@@ -15297,8 +15718,8 @@ function createNewTripFromSheet() {
   const startEl = document.getElementById('maNtStart');
   const endEl = document.getElementById('maNtEnd');
   const destName = (destEl?.value || '').trim();
-  const startIso = startEl?.value || isoToday();
-  const endIso = endEl?.value || isoAddDays(startIso, 4);
+  const startIso = startEl?.value || '';
+  const endIso = endEl?.value || '';
   const days = updateNewTripSummary();   // returns 0 if invalid
 
   if (!destName) {
@@ -15306,9 +15727,14 @@ function createNewTripFromSheet() {
     try { destEl?.focus(); } catch (e) {}
     return;
   }
+  if (!startIso || !endIso) {
+    showToast(currentLang === 'zh' ? '請選擇開始與結束日期' : 'Please choose both dates');
+    try { (startIso ? endEl : startEl)?.focus(); } catch (e) {}
+    return;
+  }
   if (days <= 0) {
-    // The summary already shows the error inline; just nudge focus to the date.
-    try { (endIso ? endEl : startEl)?.focus(); } catch (e) {}
+    showToast(currentLang === 'zh' ? '日期區間無效' : 'Invalid date range — check the summary');
+    try { endEl?.focus(); } catch (e) {}
     return;
   }
 
@@ -15334,21 +15760,27 @@ function createNewTripFromSheet() {
     createdAt: new Date().toISOString()
   };
 
-  tripStore.save(newTrip);
-  tripStore.setCurrentId(id);
-
-  // Switch app state to the new trip and refresh
-  if (typeof switchTrip === 'function') {
-    switchTrip(id);
-  } else {
-    // Fallback — just reload data globals
+  try {
+    tripStore.save(newTrip);
+    tripStore.setCurrentId(id);
+    // Direct state assignment is safer than calling switchTrip which has
+    // a bunch of desktop-side renderers that can throw on mobile and
+    // halt the flow. We set just what we need.
     currentTrip = newTrip;
     itinerary = newTrip.itinerary;
+    currentDay = 0;
+    selectedStops = {};
+    // Tear down any cached map state so the next map render uses the new trip
+    if (typeof teardownMobileMap === 'function') teardownMobileMap();
+    if (typeof teardownItinMap === 'function') teardownItinMap();
+  } catch (err) {
+    console.error('[New trip] save failed', err);
+    showToast(currentLang === 'zh' ? '⚠ 儲存失敗' : '⚠ Save failed');
+    return;
   }
 
-  // Dismiss the new-trip sheet and open the new trip's overview screen
-  // (Task 2: after creating, land on the trip's editing screen so they
-  // can start adding stops).
+  // Dismiss the new-trip sheet and open the new trip's overview screen so
+  // the user can start adding stops.
   mobileNav.pop();
   setTimeout(() => mobileNav.push('trip-overview', { tripId: id }), 50);
 
@@ -17930,6 +18362,42 @@ function setupMobileShell() {
       if (mobileMap.previewPlace) exitMapPreviewMode();
     });
   }
+
+  // ─── Inline search on day-itinerary view ─────────────────────────
+  // Same debounced text search as the Map tab, but results are added
+  // directly to the current day (no day picker — we already know which
+  // day the user is viewing).
+  const itinSearch = document.getElementById('maItinSearchInput');
+  const itinResults = document.getElementById('maItinSearchResults');
+  const itinClear = document.getElementById('maItinSearchClear');
+  let itinSearchTimer = null;
+  if (itinSearch) {
+    itinSearch.addEventListener('input', () => {
+      const v = itinSearch.value;
+      if (itinClear) itinClear.style.display = v.length > 0 ? '' : 'none';
+      clearTimeout(itinSearchTimer);
+      if (v.trim().length < 2) {
+        if (itinResults) { itinResults.style.display = 'none'; itinResults.innerHTML = ''; }
+        return;
+      }
+      itinSearchTimer = setTimeout(() => runItinDaySearch(v), 400);
+    });
+    // Refresh placeholder text on language change/render — handled in renderer
+  }
+  if (itinClear) {
+    itinClear.addEventListener('click', () => {
+      if (itinSearch) itinSearch.value = '';
+      itinClear.style.display = 'none';
+      if (itinResults) { itinResults.style.display = 'none'; itinResults.innerHTML = ''; }
+    });
+  }
+  // Dismiss the inline results when tapping outside
+  document.addEventListener('click', (e) => {
+    if (!itinResults || itinResults.style.display === 'none') return;
+    const searchWrap = document.querySelector('.ma-itin-search');
+    if (searchWrap && searchWrap.contains(e.target)) return;
+    itinResults.style.display = 'none';
+  });
 
   // Recenter / fit-all-stops control
   document.getElementById('maMapRecenter')?.addEventListener('click', () => {
