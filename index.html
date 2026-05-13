@@ -3581,6 +3581,265 @@
   .ma-rename-sheet .ma-sheet-cancel {
     margin-top: 0;
   }
+
+  /* ─── Place Detail modal ───
+   * Full-screen overlay with dark transparent backdrop. Center panel
+   * scrolls. Photo carousel at top, info chips, reviews, action buttons.
+   * Layout benchmarked against Google Maps' place card on mobile.  */
+  .ma-place-detail-view {
+    background: transparent;
+  }
+  .ma-pd-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  .ma-pd-sheet {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    top: 12vh;                                          /* leaves a glimpse of the page behind */
+    background: var(--paper, #fff);
+    border-radius: 22px 22px 0 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  .ma-pd-close {
+    position: absolute;
+    top: 14px; right: 14px;
+    z-index: 10;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.92);
+    border: none;
+    font-size: 16px; line-height: 1;
+    color: var(--ink, #1a1816);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ma-pd-close:active { transform: scale(0.92); }
+
+  /* Photo carousel — horizontal scroll snap, 240px tall */
+  .ma-pd-photos {
+    display: flex; flex-direction: row;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    height: 240px;
+    background: var(--gray-100, #f0eee9);
+  }
+  .ma-pd-photos::-webkit-scrollbar { display: none; }
+  .ma-pd-photo-slide {
+    flex: 0 0 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    scroll-snap-align: start;
+  }
+  .ma-pd-photo-dots {
+    position: absolute;
+    top: 220px; left: 0; right: 0;
+    display: flex; justify-content: center; gap: 4px;
+    pointer-events: none;
+  }
+  .ma-pd-photo-dots span {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.55);
+    transition: background 0.15s;
+  }
+  .ma-pd-photo-dots span.active {
+    background: rgba(255,255,255,1);
+  }
+
+  .ma-pd-body {
+    padding: 18px 20px 0;
+  }
+  .ma-pd-head {
+    padding-bottom: 14px;
+  }
+  .ma-pd-name {
+    font-family: 'Inter', sans-serif;
+    font-weight: 800; font-size: 22px;
+    color: var(--ink, #1a1816);
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+  }
+  .ma-pd-meta {
+    margin-top: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--gray-700, #57544c);
+    display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  }
+  .ma-pd-meta .ma-pd-star { color: #d97706; font-weight: 700; }
+  .ma-pd-meta .ma-pd-reviews { color: var(--gray-500, #8a877f); }
+  .ma-pd-meta .ma-pd-open-now {
+    color: #2f7a3e; font-weight: 700;
+  }
+  .ma-pd-meta .ma-pd-closed { color: var(--vermillion, #d04a3a); font-weight: 700; }
+
+  .ma-pd-actions {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    padding-bottom: 18px;
+  }
+  .ma-pd-action-primary,
+  .ma-pd-action-secondary {
+    border: none;
+    border-radius: 100px;
+    padding: 12px 18px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700; font-size: 14px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform 0.1s;
+  }
+  .ma-pd-action-primary {
+    background: var(--ink, #1a1816); color: white;
+  }
+  .ma-pd-action-secondary {
+    background: var(--gray-100, #f0eee9); color: var(--ink, #1a1816);
+    padding: 12px 16px;
+  }
+  .ma-pd-action-primary:active,
+  .ma-pd-action-secondary:active {
+    transform: scale(0.97);
+  }
+  .ma-pd-action-icon {
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  /* Info chips — address, hours, phone, website */
+  .ma-pd-info {
+    border-top: 1px solid var(--gray-100, #f0eee9);
+    padding-top: 6px;
+  }
+  .ma-pd-info-row {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 12px; align-items: start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--gray-50, #fafaf9);
+  }
+  .ma-pd-info-row:last-child { border-bottom: none; }
+  .ma-pd-info-row.is-link { cursor: pointer; }
+  .ma-pd-info-icon {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--gray-100, #f0eee9);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    color: var(--ink, #1a1816);
+    margin-top: 1px;
+  }
+  .ma-pd-info-value {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--ink, #1a1816);
+    line-height: 1.5;
+    word-break: break-word;
+  }
+  .ma-pd-info-row.is-link .ma-pd-info-value {
+    color: #2563a8;
+  }
+  /* Hours block — small expandable summary */
+  .ma-pd-hours-summary {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--ink, #1a1816);
+  }
+  .ma-pd-hours-list {
+    margin-top: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: var(--gray-700, #57544c);
+    line-height: 1.7;
+  }
+  .ma-pd-hours-list .is-today {
+    color: var(--ink, #1a1816);
+    font-weight: 700;
+  }
+
+  /* Reviews section */
+  .ma-pd-section {
+    padding: 20px 0 0;
+  }
+  .ma-pd-section-head {
+    padding-bottom: 12px;
+  }
+  .ma-pd-section-head h3 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 800; font-size: 16px;
+    color: var(--ink, #1a1816);
+    letter-spacing: -0.005em;
+  }
+  .ma-pd-reviews {
+    display: flex; flex-direction: column;
+    gap: 0;
+  }
+  .ma-pd-review {
+    padding: 14px 0;
+    border-top: 1px solid var(--gray-100, #f0eee9);
+  }
+  .ma-pd-review-head {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 8px;
+  }
+  .ma-pd-review-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--gray-200, #d8d4cc);
+    color: var(--ink, #1a1816);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700; font-size: 13px;
+    flex-shrink: 0;
+  }
+  .ma-pd-review-by {
+    min-width: 0;
+  }
+  .ma-pd-review-name {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700; font-size: 13px;
+    color: var(--ink, #1a1816);
+  }
+  .ma-pd-review-meta {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--gray-500, #8a877f);
+    margin-top: 1px;
+  }
+  .ma-pd-review-meta .ma-pd-star {
+    color: #d97706; font-weight: 700;
+  }
+  .ma-pd-review-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--gray-700, #57544c);
+    line-height: 1.55;
+    /* Clamp to 4 lines so reviews stay scannable */
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .ma-pd-foot {
+    height: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+  .ma-pd-loading {
+    padding: 18px 20px;
+    text-align: center;
+    color: var(--gray-500, #8a877f);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+  }
   .ma-itin-map {
     flex-shrink: 0;
     position: relative;
@@ -5677,6 +5936,59 @@
       </div>
     </section>
 
+    <!-- View: Place detail — full-screen modal opened from Explore (or other
+         place sources). Dark backdrop, scrollable card with photo carousel,
+         info, reviews, action buttons. Lives in the Explore tab so back
+         dismisses cleanly. -->
+    <section class="ma-view ma-view-modal ma-place-detail-view" data-view="place-detail" data-tab="explore">
+      <div class="ma-pd-backdrop" data-action="back"></div>
+      <div class="ma-pd-sheet">
+        <button class="ma-pd-close" data-action="back" aria-label="Close">✕</button>
+        <!-- Photo carousel — horizontal scroll snap. Loading skeleton until photos arrive. -->
+        <div class="ma-pd-photos" id="maPdPhotos">
+          <div class="ma-pd-photo-slide"></div>
+        </div>
+        <div class="ma-pd-photo-dots" id="maPdPhotoDots"></div>
+
+        <div class="ma-pd-body">
+          <div class="ma-pd-head">
+            <h2 class="ma-pd-name" id="maPdName">—</h2>
+            <div class="ma-pd-meta" id="maPdMeta">—</div>
+          </div>
+
+          <!-- Action row -->
+          <div class="ma-pd-actions">
+            <button class="ma-pd-action-primary" id="maPdAddBtn">
+              <span class="ma-pd-action-icon">+</span>
+              <span data-i18n="ma-pd-add">Add to trip</span>
+            </button>
+            <button class="ma-pd-action-secondary" id="maPdMapsBtn" aria-label="Open in Google Maps">
+              <span class="ma-pd-action-icon">↗</span>
+              <span data-i18n="ma-pd-maps">Maps</span>
+            </button>
+          </div>
+
+          <!-- Info chips — each row has an icon + value (address, hours, phone, website) -->
+          <div class="ma-pd-info" id="maPdInfo">
+            <!-- Filled dynamically -->
+          </div>
+
+          <!-- Reviews section -->
+          <div class="ma-pd-section" id="maPdReviewsWrap" style="display:none">
+            <div class="ma-pd-section-head">
+              <h3 data-i18n="ma-pd-reviews">Reviews</h3>
+            </div>
+            <div class="ma-pd-reviews" id="maPdReviews">
+              <!-- Filled dynamically -->
+            </div>
+          </div>
+
+          <!-- Bottom padding for safe area -->
+          <div class="ma-pd-foot"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- ─── TAB: EXPLORE (placeholder for now) ─── -->
     <section class="ma-view" data-view="explore-home" data-tab="explore">
       <div class="ma-scroll">
@@ -6527,6 +6839,9 @@ const i18n = {
     "ma-save": "Save",
     "ma-rename-day": "Rename day",
     "ma-rename-hint": "Leave blank to reset to default.",
+    "ma-pd-add": "Add to trip",
+    "ma-pd-maps": "Maps",
+    "ma-pd-reviews": "Reviews",
     "ma-list": "List",
     "ma-navigate": "Navigate →",
     "ma-set-prefs": "Preferences",
@@ -6774,6 +7089,9 @@ const i18n = {
     "ma-save": "儲存",
     "ma-rename-day": "重新命名",
     "ma-rename-hint": "留空即可重設為預設值。",
+    "ma-pd-add": "加入行程",
+    "ma-pd-maps": "地圖",
+    "ma-pd-reviews": "評論",
     "ma-list": "列表",
     "ma-navigate": "前往導航 →",
     "ma-set-prefs": "偏好設定",
@@ -13094,6 +13412,13 @@ const mobileViewRenderers = {
     }
   },
 
+  /* Place detail modal — renders from _placeDetailData (set by
+   * openPlaceDetail before push). Render is idempotent so it can be
+   * called again when full details fetch completes. */
+  'place-detail': function() {
+    renderPlaceDetail();
+  },
+
   /* Rename day sheet — small bottom sheet with a text input. The day index
    * to rename is stashed on _renameDayIdx by openDayRenameSheet(). */
   'rename-day': function() {
@@ -14243,8 +14568,9 @@ async function loadExploreCategoryPlaces(cat, center, sectionEl) {
       applyGradientFallback(thumb, p.name || p.place_id);
     }
     card.addEventListener('click', () => {
-      // Open the Pick-a-Day sheet to add this place to a chosen day
-      openPickDaySheet(p);
+      // Open the full place-detail modal (with photos, reviews, hours, etc.)
+      // From there the user can either add to a day or open in Google Maps.
+      openPlaceDetail(p);
     });
     rowEl.appendChild(card);
   });
@@ -14309,13 +14635,31 @@ function openMapDayDropdown() {
         <div class="mddr-count">${stopCount} ${currentLang === 'zh' ? '個地點' : (stopCount === 1 ? 'stop' : 'stops')}</div>
       </div>
     `;
-    row.addEventListener('click', () => {
+    row.addEventListener('click', (e) => {
+      e.stopPropagation();   // don't let the document outside-click handler swallow this
       closeMapDayDropdown();
-      // Switch the map to this day. If it's already the current day, do nothing.
+      // If it's already the current day, just close — no work to do
       if (idx === mobileMap.day) return;
+
+      // Directly drive the map to switch days. We bypass renderActive's
+      // sameDay short-circuit by forcibly tearing down the map first, then
+      // setting the state, then rendering. This eliminates any chance the
+      // renderer sees stale state.
+      mobileMap.day = idx;
+      mobileMap.selectedIdx = 0;
+      // Wipe preview if any
+      if (mobileMap.previewPlace && typeof exitMapPreviewMode === 'function') {
+        exitMapPreviewMode();
+      }
+      // Update the chip's label immediately for visual feedback while the map rebuilds
+      renderMobileMapChrome();
+      // Also update stateByView so back-nav within the tab remembers the new day
       mobileNav.stateByView['map-home'] = { dayIdx: idx };
-      // Trigger a re-render of the active view (map-home)
-      mobileNav.renderActive();
+      // Reset bottom card to expanded
+      if (typeof setMapBottomCollapsed === 'function') setMapBottomCollapsed(false);
+      // Rebuild the canvas with the new day's pins
+      teardownMobileMap();
+      setTimeout(() => renderMobileMapCanvas(), 30);
     });
     dd.appendChild(row);
   });
@@ -14470,6 +14814,339 @@ function setMapBottomCollapsed(collapsed) {
 }
 function toggleMapBottomCard() {
   setMapBottomCollapsed(!isMapBottomCollapsed());
+}
+
+/* ─── Place Detail modal ─────────────────────────────────────────
+ * Opened from Explore recommendation cards (and could be opened from
+ * map search results too). Fetches full Place details via the Google
+ * Places legacy getDetails endpoint (so we can show photos, reviews,
+ * hours, phone, website that aren't returned by nearbySearch).
+ *
+ * State is held in _placeDetailData while the modal is open.
+ */
+let _placeDetailData = null;
+let _placeDetailLoading = false;
+
+/** Cache full details by place_id (24h TTL) so re-opens are instant. */
+const PD_CACHE_PREFIX = 'pddetail:';
+const PD_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+function getCachedPlaceDetail(placeId) {
+  try {
+    const raw = localStorage.getItem(PD_CACHE_PREFIX + placeId);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (Date.now() - (obj.ts || 0) > PD_CACHE_TTL_MS) return null;
+    return obj.data || null;
+  } catch (e) { return null; }
+}
+function setCachedPlaceDetail(placeId, data) {
+  try {
+    localStorage.setItem(PD_CACHE_PREFIX + placeId, JSON.stringify({ ts: Date.now(), data }));
+  } catch (e) {}
+}
+
+/** Open the place-detail modal with the given seed object. The seed has
+ *  basic info from nearbySearch (name, rating, photo). Full details are
+ *  fetched async and merged in once available. */
+function openPlaceDetail(seed) {
+  if (!seed || !seed.place_id) return;
+  // Initial render with seed data so something appears immediately
+  _placeDetailData = { ...seed };
+  _placeDetailLoading = true;
+  mobileNav.push('place-detail');
+  // Then fetch the full record (or use cache)
+  const cached = getCachedPlaceDetail(seed.place_id);
+  if (cached) {
+    _placeDetailData = { ..._placeDetailData, ...cached };
+    _placeDetailLoading = false;
+    renderPlaceDetail();
+    return;
+  }
+  fetchPlaceDetails(seed.place_id).then(full => {
+    if (full) {
+      _placeDetailData = { ..._placeDetailData, ...full };
+      setCachedPlaceDetail(seed.place_id, full);
+    }
+    _placeDetailLoading = false;
+    // Re-render only if the modal is still open
+    if (mobileNav.stacks.explore?.[mobileNav.stacks.explore.length - 1] === 'place-detail') {
+      renderPlaceDetail();
+    }
+  }).catch(() => {
+    _placeDetailLoading = false;
+    renderPlaceDetail();
+  });
+}
+
+async function fetchPlaceDetails(placeId) {
+  if (!googleApiKey) return null;
+  try { await loadGoogleMapsJsApi(); } catch (e) { return null; }
+  return new Promise(resolve => {
+    const svc = new google.maps.places.PlacesService(document.createElement('div'));
+    svc.getDetails({
+      placeId,
+      fields: [
+        'name', 'formatted_address', 'formatted_phone_number',
+        'international_phone_number', 'website', 'url',
+        'opening_hours', 'current_opening_hours',
+        'rating', 'user_ratings_total', 'price_level',
+        'photos', 'reviews', 'types', 'editorial_summary',
+        'geometry'
+      ],
+      language: currentLang === 'zh' ? 'zh-TW' : 'en'
+    }, (p, status) => {
+      if (status !== google.maps.places.PlacesServiceStatus.OK || !p) {
+        resolve(null);
+        return;
+      }
+      // Slim into JSON-safe shape (Google's Photo objects can't be JSON.stringify'd)
+      const photos = (p.photos || []).slice(0, 6).map(ph => {
+        try { return ph.getUrl?.({ maxWidth: 900, maxHeight: 600 }) || null; }
+        catch (e) { return null; }
+      }).filter(Boolean);
+      const reviews = (p.reviews || []).slice(0, 5).map(r => ({
+        author_name: r.author_name,
+        rating: r.rating,
+        text: r.text,
+        relative_time_description: r.relative_time_description,
+        profile_photo_url: r.profile_photo_url
+      }));
+      resolve({
+        name: p.name,
+        address: p.formatted_address,
+        phone: p.formatted_phone_number || p.international_phone_number,
+        website: p.website,
+        google_url: p.url,
+        opening_hours: p.opening_hours ? {
+          isOpen: typeof p.opening_hours.isOpen === 'function' ? p.opening_hours.isOpen() : undefined,
+          weekday_text: p.opening_hours.weekday_text
+        } : null,
+        rating: p.rating,
+        user_ratings_total: p.user_ratings_total,
+        price_level: p.price_level,
+        photos,
+        reviews,
+        types: p.types,
+        editorial_summary: p.editorial_summary?.overview,
+        lat: p.geometry?.location?.lat(),
+        lng: p.geometry?.location?.lng()
+      });
+    });
+  });
+}
+
+function renderPlaceDetail() {
+  const p = _placeDetailData;
+  if (!p) return;
+  const t = i18n[currentLang] || {};
+
+  // ─── Photos carousel ───
+  const photosEl = document.getElementById('maPdPhotos');
+  const dotsEl = document.getElementById('maPdPhotoDots');
+  if (photosEl && dotsEl) {
+    // Collect all photo URLs: full details if loaded, seed photo as fallback
+    const photos = (p.photos && p.photos.length > 0) ? p.photos :
+                   (p.photo ? [p.photo] : []);
+    photosEl.innerHTML = '';
+    dotsEl.innerHTML = '';
+    if (photos.length === 0) {
+      // No photos — show gradient fallback
+      const slide = document.createElement('div');
+      slide.className = 'ma-pd-photo-slide';
+      applyGradientFallback(slide, p.name || p.place_id);
+      photosEl.appendChild(slide);
+    } else {
+      photos.forEach((url, i) => {
+        const slide = document.createElement('div');
+        slide.className = 'ma-pd-photo-slide';
+        slide.style.backgroundImage = `url('${url}')`;
+        photosEl.appendChild(slide);
+        if (photos.length > 1) {
+          const dot = document.createElement('span');
+          if (i === 0) dot.classList.add('active');
+          dotsEl.appendChild(dot);
+        }
+      });
+      // Track scroll to update dots
+      photosEl.onscroll = () => {
+        const w = photosEl.clientWidth;
+        if (!w) return;
+        const idx = Math.round(photosEl.scrollLeft / w);
+        Array.from(dotsEl.children).forEach((d, i) => {
+          d.classList.toggle('active', i === idx);
+        });
+      };
+    }
+  }
+
+  // ─── Name + meta line ───
+  const nameEl = document.getElementById('maPdName');
+  if (nameEl) nameEl.textContent = p.name || '—';
+
+  const metaEl = document.getElementById('maPdMeta');
+  if (metaEl) {
+    const parts = [];
+    if (p.rating) parts.push(`<span class="ma-pd-star">★ ${p.rating.toFixed(1)}</span>`);
+    if (p.user_ratings_total) parts.push(`<span class="ma-pd-reviews">(${formatCount(p.user_ratings_total)})</span>`);
+    if (p.price_level) parts.push(`<span>${'¥'.repeat(Math.max(1, p.price_level))}</span>`);
+    // Category from types[]
+    const cat = formatPlaceCategory(p.types, currentLang);
+    if (cat) parts.push(`<span>·</span><span>${escapeHTML(cat)}</span>`);
+    // Open/closed status — only if opening_hours.isOpen is defined
+    if (p.opening_hours?.isOpen === true) {
+      parts.push(`<span>·</span><span class="ma-pd-open-now">${escapeHTML(currentLang === 'zh' ? '營業中' : 'Open now')}</span>`);
+    } else if (p.opening_hours?.isOpen === false) {
+      parts.push(`<span>·</span><span class="ma-pd-closed">${escapeHTML(currentLang === 'zh' ? '休息中' : 'Closed')}</span>`);
+    }
+    metaEl.innerHTML = parts.join(' ');
+  }
+
+  // ─── Actions ───
+  const addBtn = document.getElementById('maPdAddBtn');
+  if (addBtn) {
+    addBtn.onclick = () => {
+      // Close the detail modal first, then open Pick-a-Day with this place
+      mobileNav.pop();
+      // Give the modal a frame to dismiss, then open the day picker
+      setTimeout(() => openPickDaySheet(p), 50);
+    };
+  }
+  const mapsBtn = document.getElementById('maPdMapsBtn');
+  if (mapsBtn) {
+    mapsBtn.onclick = () => {
+      const url = p.google_url ||
+        `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(p.place_id)}`;
+      window.open(url, '_blank', 'noopener');
+    };
+  }
+
+  // ─── Info chips ───
+  const infoEl = document.getElementById('maPdInfo');
+  if (infoEl) {
+    infoEl.innerHTML = '';
+
+    // Address
+    if (p.address || p.vicinity) {
+      infoEl.appendChild(buildPdInfoRow('📍', p.address || p.vicinity, false));
+    }
+
+    // Hours
+    if (p.opening_hours?.weekday_text && p.opening_hours.weekday_text.length > 0) {
+      const today = new Date().getDay();
+      // Google returns Mon=0 ... Sun=6 in weekday_text. JS Date.getDay() returns Sun=0...Sat=6.
+      // Map JS day to Google's array index: Mon=0, Tue=1, ..., Sun=6
+      const gIdx = (today === 0) ? 6 : today - 1;
+      const todayLine = p.opening_hours.weekday_text[gIdx] || '';
+      const otherLines = p.opening_hours.weekday_text;
+      const hoursHtml = `
+        <div class="ma-pd-hours-summary">${escapeHTML(todayLine || (currentLang === 'zh' ? '營業時間' : 'Hours'))}</div>
+        <div class="ma-pd-hours-list">
+          ${otherLines.map((line, i) =>
+            `<div class="${i === gIdx ? 'is-today' : ''}">${escapeHTML(line)}</div>`
+          ).join('')}
+        </div>
+      `;
+      const row = document.createElement('div');
+      row.className = 'ma-pd-info-row';
+      row.innerHTML = `
+        <div class="ma-pd-info-icon">🕐</div>
+        <div class="ma-pd-info-value">${hoursHtml}</div>
+      `;
+      infoEl.appendChild(row);
+    }
+
+    // Phone
+    if (p.phone) {
+      const row = buildPdInfoRow('☎', p.phone, true);
+      row.onclick = () => { window.location.href = `tel:${p.phone.replace(/\s/g, '')}`; };
+      infoEl.appendChild(row);
+    }
+
+    // Website
+    if (p.website) {
+      const display = p.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+      const row = buildPdInfoRow('🌐', display, true);
+      row.onclick = () => { window.open(p.website, '_blank', 'noopener'); };
+      infoEl.appendChild(row);
+    }
+
+    // Loading indicator while details fetch
+    if (_placeDetailLoading) {
+      const row = document.createElement('div');
+      row.className = 'ma-pd-loading';
+      row.textContent = currentLang === 'zh' ? '載入詳細資料…' : 'Loading details…';
+      infoEl.appendChild(row);
+    }
+  }
+
+  // ─── Reviews ───
+  const reviewsWrap = document.getElementById('maPdReviewsWrap');
+  const reviewsEl = document.getElementById('maPdReviews');
+  if (reviewsWrap && reviewsEl) {
+    if (p.reviews && p.reviews.length > 0) {
+      reviewsWrap.style.display = '';
+      reviewsEl.innerHTML = '';
+      p.reviews.forEach(r => {
+        const initial = (r.author_name || '?').charAt(0).toUpperCase();
+        const review = document.createElement('div');
+        review.className = 'ma-pd-review';
+        review.innerHTML = `
+          <div class="ma-pd-review-head">
+            <div class="ma-pd-review-avatar">${escapeHTML(initial)}</div>
+            <div class="ma-pd-review-by">
+              <div class="ma-pd-review-name">${escapeHTML(r.author_name || '—')}</div>
+              <div class="ma-pd-review-meta">
+                ${r.rating ? `<span class="ma-pd-star">★ ${r.rating}</span> · ` : ''}
+                ${escapeHTML(r.relative_time_description || '')}
+              </div>
+            </div>
+          </div>
+          <div class="ma-pd-review-text">${escapeHTML(r.text || '')}</div>
+        `;
+        reviewsEl.appendChild(review);
+      });
+    } else {
+      reviewsWrap.style.display = 'none';
+    }
+  }
+}
+
+/** Build one info-chip row (icon + value). Returns the row element. */
+function buildPdInfoRow(icon, value, isLink) {
+  const row = document.createElement('div');
+  row.className = 'ma-pd-info-row' + (isLink ? ' is-link' : '');
+  row.innerHTML = `
+    <div class="ma-pd-info-icon">${icon}</div>
+    <div class="ma-pd-info-value">${escapeHTML(value)}</div>
+  `;
+  return row;
+}
+
+/** Friendly category from Google's `types` array. */
+function formatPlaceCategory(types, lang) {
+  if (!types || !types.length) return '';
+  const PRIORITY = [
+    ['restaurant', { en: 'Restaurant', zh: '餐廳' }],
+    ['cafe', { en: 'Café', zh: '咖啡' }],
+    ['bar', { en: 'Bar', zh: '酒吧' }],
+    ['bakery', { en: 'Bakery', zh: '麵包店' }],
+    ['tourist_attraction', { en: 'Attraction', zh: '景點' }],
+    ['museum', { en: 'Museum', zh: '博物館' }],
+    ['lodging', { en: 'Hotel', zh: '飯店' }],
+    ['shopping_mall', { en: 'Shopping mall', zh: '購物中心' }],
+    ['store', { en: 'Shop', zh: '商店' }],
+    ['park', { en: 'Park', zh: '公園' }],
+    ['art_gallery', { en: 'Gallery', zh: '藝廊' }],
+  ];
+  for (const [key, label] of PRIORITY) {
+    if (types.includes(key)) return label[lang] || label.en;
+  }
+  // Fallback — first non-generic type, prettified
+  const generic = new Set(['point_of_interest', 'establishment', 'food']);
+  const pretty = types.find(t => !generic.has(t));
+  if (pretty) return pretty.replace(/_/g, ' ').replace(/\b\w/g, m => m.toUpperCase());
+  return '';
 }
 
 /* ─── Rename Day sheet ─── */
